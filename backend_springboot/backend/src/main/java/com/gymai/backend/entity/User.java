@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.gymai.backend.enums.Goal;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gymai.backend.enums.*;
 
 import jakarta.persistence.*;
 
@@ -31,8 +32,14 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String passwordString;
+    /**
+     * Store a one-way hash (e.g., BCrypt). Never the raw password.
+     * 60 chars fits BCrypt hashes.
+     * @JsonIgnore prevents this field from being serialized in API responses.
+     */
+    @JsonIgnore
+    @Column(nullable = false, length = 60)
+    private String passwordHash;
 
     @Column
     private String profilePictureUrl;
@@ -57,6 +64,10 @@ public class User {
     @Column(nullable = false)
     private Goal userGoal;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SkillLevel skillLevel;
+
     @Column
     private LocalDate dob;
 
@@ -76,8 +87,8 @@ public class User {
     public String getUserName() { return userName;}
     public void setUserName(String userName) {this.userName = userName;}
 
-    public String getPasswordString() { return passwordString;}
-    public void setPasswordString(String passwordString) {this.passwordString = passwordString;}
+    public String getPasswordHash() { return passwordHash;}
+    public void setPasswordHash(String passwordHash) {this.passwordHash = passwordHash;}
 
     public String getProfilePictureUrl() { return profilePictureUrl;}
     public void setProfilePictureUrl(String profilePictureUrl) {this.profilePictureUrl = profilePictureUrl;}
@@ -100,6 +111,9 @@ public class User {
     public LocalDate getDob() { return dob; }
     public void setDob(LocalDate dob) { this.dob = dob; }
 
-    public Goal getUserGoals() {return userGoal;}
+    public Goal getUserGoal() {return userGoal;}
     public void setUserGoal(Goal userGoal) {this.userGoal = userGoal;}
+
+    public SkillLevel getSkillLevel() {return skillLevel;}
+    public void setSkillLevel(SkillLevel skillLevel) {this.skillLevel = skillLevel;}
 }
