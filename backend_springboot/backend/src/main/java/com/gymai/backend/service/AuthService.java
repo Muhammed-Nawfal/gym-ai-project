@@ -1,9 +1,13 @@
 package com.gymai.backend.service;
 
+import com.gymai.backend.dto.AuthResponse;
+import com.gymai.backend.dto.LoginRequest;
 import com.gymai.backend.dto.RegisterRequest;
 import com.gymai.backend.dto.UserResponse;
 import com.gymai.backend.entity.User;
 import com.gymai.backend.repository.UserRepository;
+import com.gymai.backend.security.JwtUtils;
+
 import jakarta.transaction.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,14 +15,17 @@ import org.springframework.stereotype.Service;
 
 
 @Service
+@Transactional
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     @Transactional
@@ -78,6 +85,20 @@ public class AuthService {
         r.setUpdatedAt(u.getUpdatedAt());
 
         return r;
+    }
+
+    public AuthResponse login(LoginRequest request){
+
+         User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())){
+            throw new RuntimeException("Username or password incorrect");
+        }
+
+        String token = jwtUtils.generateToken(user.getEmail());
+        return new AuthResponse(token, user.getEmail());
+
     }
     
 }

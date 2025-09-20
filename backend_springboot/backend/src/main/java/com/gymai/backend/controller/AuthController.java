@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gymai.backend.dto.AuthResponse;
+import com.gymai.backend.dto.LoginRequest;
 import com.gymai.backend.dto.RegisterRequest;
 import com.gymai.backend.dto.UserResponse;
 import com.gymai.backend.service.AuthService;
@@ -33,4 +35,9 @@ public class AuthController {
                 .created(URI.create("/api/users/"+created.getId()))
                 .body(created);
         }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request){
+        return ResponseEntity.ok(authService.login(request));
+    }
 }
