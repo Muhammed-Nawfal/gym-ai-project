@@ -13,12 +13,14 @@ public class Workout {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable=false)
+    @Column(name = "name", nullable=false)
     private String name;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToMany
@@ -27,5 +29,5 @@ public class Workout {
         joinColumns = @JoinColumn(name = "workout_id"),
         inverseJoinColumns = @JoinColumn(name = "exercise_id")
     )
-    private List<Exercise> exercises = new ArrayList<>(); 
+    private List<Exercise> workoutExercises = new ArrayList<>(); 
 }

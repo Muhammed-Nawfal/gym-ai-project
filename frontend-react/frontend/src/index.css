@@ -2,71 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply bg-black text-zinc-200 antialiased; }
+  
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --brand-gold: #fbbf24;
+    --brand-gold-dark: #d97706;
+    --cyan-400: #22d3ee;
+    --cyan-500: #06b6d4;
+    --teal-400: #2dd4bf;
+    --teal-500: #14b8a6;
   }
-  a:hover {
-    color: #747bff;
+}
+
+@layer components {
+  
+  .card {
+    @apply rounded-2xl transition-all duration-300 ease-out;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(20px) saturate(120%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
-  button {
-    background-color: #f9f9f9;
+  
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  .card-hover-gold {
+    @apply hover:border-brand-gold hover:shadow-brand-gold/20;
+  }
+
+  .btn-list {
+    @apply w-full text-left rounded-xl border border-neutral-700 bg-neutral-800/40 backdrop-blur-md 
+           px-5 py-4 transition-all duration-300 ease-out
+           hover:-translate-y-0.5 hover:border-brand-gold hover:text-brand-gold hover:shadow-md hover:shadow-brand-gold/10;
+  }
+  
+  .muted { 
+    @apply text-zinc-400; 
+  }
+  
+  .h1 { 
+    @apply text-3xl sm:text-3xl font-semibold; 
+  }
+
+  .h2 { 
+    @apply text-lg font-medium; 
+  }
+
+  .brand-gold {
+    color: var(--brand-gold);
+  }
+
+  .brand-gold-dark {
+    color: var(--brand-gold-dark);
+  }
+
+  .text-teal-400 {
+    color: var(--teal-400);
   }
 }

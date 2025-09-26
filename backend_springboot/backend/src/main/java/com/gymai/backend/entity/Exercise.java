@@ -15,9 +15,10 @@ public class Exercise {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
     //this will create a new table with excercise id and muscle group
@@ -27,8 +28,10 @@ public class Exercise {
     @Column(name = "muscle_group")
     private List<MuscleGroup> muscleGroups = new ArrayList<>();
 
-
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "youtube_link")
     private String youtubeLink;
 
     @ManyToOne
