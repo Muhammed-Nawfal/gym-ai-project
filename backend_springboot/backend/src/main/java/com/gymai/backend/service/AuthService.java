@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 
 @Service
@@ -29,17 +31,17 @@ public class AuthService {
     }
 
     @Transactional
-    public UserResponse register(RegisterRequest req){
+    public AuthResponse register(RegisterRequest req){
 
         String email = req.getEmail().trim().toLowerCase();
         String userName = req.getUserName().trim();
 
         if(userRepository.findByEmail(email).isPresent()){
-            throw new IllegalArgumentException("Email Already in use");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         }
 
         if(userRepository.findByUserName(userName).isPresent()){
-            throw new IllegalArgumentException("Username already taken");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already in use");
         }
 
         String hash = passwordEncoder.encode(req.getPassword());
@@ -59,7 +61,9 @@ public class AuthService {
 
         try{
             User saved = userRepository.save(u);
-            return toUserResponse(saved);
+
+            String token = jwtUtils.generateToken(saved.getEmail());
+            return new AuthResponse(token, saved.getEmail());
         }
         catch(DataIntegrityViolationException ex){
             throw new IllegalArgumentException("Email or username already exists");
@@ -89,8 +93,11 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request){
 
-         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        String identifier = request.getEmail().trim();
+
+        User user = userRepository.findByEmail(identifier)
+            .orElseGet(() -> userRepository.findByUserName(identifier)
+            .orElseThrow(() -> new RuntimeException("User not found")));
 
         if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())){
             throw new RuntimeException("Username or password incorrect");
