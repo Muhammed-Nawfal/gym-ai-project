@@ -2,14 +2,10 @@ import React from "react";
 import StatsCard from "../components/StatsCard";
 import QuickActionItem from "../components/QuickActionItem";
 import { Zap, Calendar, Target, TrendingUp, Plus } from "lucide-react";
-import Navbar from "../components/Navbar";
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen">
-      
-      <Navbar />
-      
+     
       <main className="mx-auto max-w-7xl px-6 py-8">
         {/* Greeting */}
         <section>
@@ -84,7 +80,6 @@ const Home: React.FC = () => {
           </aside>
         </section>
       </main>
-    </div>
   );
 };
 
