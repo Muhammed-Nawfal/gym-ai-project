@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Dumbbell, TrendingUp, User, LogOut } from "lucide-react";
+import { Home, Dumbbell, TrendingUp, User, LogOut, BicepsFlexed } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import Profile from "../pages/Profile";
 import { useAuth } from "../context/AuthContext";
@@ -41,6 +41,20 @@ const Navbar: React.FC = () => {
             <Dumbbell size={16} />
             Workouts
           </a>
+
+          <Link 
+            to="/exercise"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
+              isActive("/exercise")
+                ? "bg-brand-gold text-black font-medium"
+                : "text-zinc-400 hover:text-brand-gold"
+              }`}
+            >
+              <BicepsFlexed size={16} />
+              Exercises
+          </Link>
+
+
           <a className="flex items-center gap-2 text-zinc-400 hover:text-brand-gold transition-colors">
             <TrendingUp size={16} />
             Progress

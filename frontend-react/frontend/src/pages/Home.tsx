@@ -1,15 +1,43 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import StatsCard from "../components/StatsCard";
 import QuickActionItem from "../components/QuickActionItem";
 import { Zap, Calendar, Target, TrendingUp, Plus } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 
 const Home: React.FC = () => {
+
+  const[user, setUser] = useState<any>(null);
+
+  const { token } = useAuth();
+
+  useEffect(() => {
+    axios.get(
+      "/api/users/me", 
+      {headers: { Authorization: `Bearer ${token}` }}
+    )
+    .then(
+      res => {
+        setUser(res.data);
+      }
+    )
+    .catch(err => {
+       console.error("Failed to fetch profile:", err);
+    });
+  }, [] );
+
+  const goalLabels: Record<string, string> = {
+    CUTTING: "Cutting",
+    BULKING: "Bulking (Muscle Gain)",
+    BODY_RECOMPOSITION: "Body Recomposition",
+  };
+  
+  
   return (
-     
       <main className="mx-auto max-w-7xl px-6 py-8">
         {/* Greeting */}
         <section>
-          <h1 className="h1">Welcome back, John Doe!</h1>
+          <h1 className="h1">Welcome back, {user?.firstName} {user?.lastName}!</h1>
           <p className="muted mt-1">Ready to crush your fitness goals?</p>
         </section>
 
@@ -27,7 +55,11 @@ const Home: React.FC = () => {
           />
           <StatsCard 
             title="Current Goal" 
-            value={<span className="text-brand-gold">Build muscle</span>}
+            value={
+              <span className="text-brand-gold"> 
+                {goalLabels[user?.userGoal as keyof typeof goalLabels] || user?.userGoal}
+              </span>
+            }
             icon={<Target className="text-brand-gold" size={30} />}
           />
           <StatsCard

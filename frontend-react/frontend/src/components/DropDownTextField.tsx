@@ -6,14 +6,27 @@ interface DropDownTextFieldOption {
   label: string;
 }
 
-interface DropDownTextFieldProps {
+interface SingleSelectProps {
   label?: string;
   placeholder?: string;
   value: string;
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
   options: DropDownTextFieldOption[];
   editable?: boolean;
+  multiSelect?: false;
 }
+
+interface MultiSelectProps {
+  label?: string;
+  placeholder?: string;
+  value: string[];
+  onChange: (value: string[]) => void;
+  options: DropDownTextFieldOption[];
+  editable?: boolean;
+  multiSelect: true;
+}
+
+type DropDownTextFieldProps = SingleSelectProps | MultiSelectProps;
 
 const DropDownTextField: React.FC<DropDownTextFieldProps> = ({
   label,
@@ -22,14 +35,20 @@ const DropDownTextField: React.FC<DropDownTextFieldProps> = ({
   onChange,
   options,
   editable = true,
+  multiSelect= false,
 }) => {
   const selected = options.find((o) => o.value === value);
 
   return (
     <div className="flex flex-col space-y-1">
-      {label && <label className="text-sm text-zinc-400">{label}</label>}
+      {label && <label className="text-sm text-gray-200">{label}</label>}
 
-      <Listbox value={value} onChange={onChange} disabled={!editable}>
+      <Listbox 
+        value={value} 
+        onChange={onChange as any} 
+        disabled={!editable}
+        multiple={multiSelect}
+      >
         <div className="relative">
           <Listbox.Button
             className={`
@@ -42,7 +61,15 @@ const DropDownTextField: React.FC<DropDownTextFieldProps> = ({
               flex justify-between items-center
             `}
           >
-            {selected ? selected.label : placeholder || "Select an option"}
+            {multiSelect ? (
+              (value as string[]).length>0
+                ? (value as string[])
+                  .map((v)=> options.find((o) => o.value ===v)?.label)
+                  .join(",")
+                : placeholder || "Select options"
+            ) : (
+              options.find((o) => o.value === (value as string))?.label || placeholder || "Select an option"
+            )}
             <ChevronDown className="h-4 w-4 muted" />
           </Listbox.Button>
 

@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import OnBoarding from "./pages/OnBoarding";
 import { RegistrationProvider } from "./context/RegistrationContext";
 import { AuthProvider } from "./context/AuthContext";
+import Exercise from "./pages/Exercise";
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
             <Route path="/profile" element= {<Profile/>}/>
             <Route path="/login" element= {<Login/>}/>
             <Route path="/home" element={<Home />} />
+            <Route path="/exercise" element={<Exercise />} />
 
             <Route element={<RegistrationProvider><Outlet /></RegistrationProvider>}>
               <Route path="/register" element={<Register />} />

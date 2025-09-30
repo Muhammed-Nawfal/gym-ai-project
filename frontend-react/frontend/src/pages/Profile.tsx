@@ -30,7 +30,6 @@ const Profile: React.FC = () => {
             )
             .then(
                 res => {
-                    console.log("Profile data:", res.data);
                     setUser(res.data);
                     setFormData(res.data);
                 }

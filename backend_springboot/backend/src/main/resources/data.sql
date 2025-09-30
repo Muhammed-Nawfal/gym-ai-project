@@ -1,6 +1,6 @@
--- =====================
--- Seed Exercises
--- =====================
+-- -- =====================
+-- -- Seed Exercises
+-- -- =====================
 -- INSERT INTO exercise (id, name, description, youtube_link)
 -- VALUES
 -- (1, 'Bench Press', 'Compound chest exercise with barbell.', 'https://youtu.be/rT7DgCr-3pg'),
@@ -14,26 +14,26 @@
 -- (9, 'Leg Press', 'Compound lower body machine exercise.', 'https://youtu.be/IZxyjW7MPJQ'),
 -- (10, 'Chest Fly', 'Chest isolation exercise.', 'https://youtu.be/eozdVDA78K0');
 
--- =====================
--- Seed Muscle Groups Mapping
--- =====================
--- -- Bench Press
+-- -- =====================
+-- -- Seed Muscle Groups Mapping
+-- -- =====================
+-- -- -- Bench Press
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (1, 'CHEST'), (1, 'TRICEP'), (1, 'SHOULDERS');
--- -- Squat
+-- -- -- Squat
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (2, 'LEG');
--- -- Deadlift
+-- -- -- Deadlift
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (3, 'BACK'), (3, 'LEG');
--- -- Overhead Press
+-- -- -- Overhead Press
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (4, 'SHOULDERS'), (4, 'TRICEP');
--- -- Pull-Up
+-- -- -- Pull-Up
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (5, 'BACK'), (5, 'BICEP');
--- -- Bicep Curl
+-- -- -- Bicep Curl
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (6, 'BICEP');
--- -- Tricep Dip
+-- -- -- Tricep Dip
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (7, 'TRICEP'), (7, 'CHEST');
--- -- Lunge
+-- -- -- Lunge
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (8, 'LEG');
--- -- Leg Press
+-- -- -- Leg Press
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (9, 'LEG');
--- -- Chest Fly
+-- -- -- Chest Fly
 -- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (10, 'CHEST');

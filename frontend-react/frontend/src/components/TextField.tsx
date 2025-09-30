@@ -20,7 +20,7 @@ const TextField: React.FC<TextFieldProps> = ({
   return (
     <div className="flex flex-col space-y-1">
       {/* Only render label if provided */}
-      {label && <label className="text-sm text-zinc-400">{label}</label>}
+      {label && <label className="text-sm text-gray-200">{label}</label>}
 
       <input
         type={type === 'date' && !value ? "text" :type}
