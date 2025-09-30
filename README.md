@@ -14,7 +14,7 @@ GymAI is a full-stack fitness platform built to make training smarter and more e
 
 ### Upcoming Features
 - 📌 Minimum Viable Product (MVP): **Workouts Page** and **Achievements Page**  
-- 🤖 **AI Coach** integration via OpenAI API in a separate Node.js microservice  
+- 🤖 **AI Coach** integration via OpenAI API in a separate Node.js microservice for independent scalability.
 - ⚡ **Frontend caching** for performance improvements  
 - 🌐 **Deployment** of the app  
 
@@ -32,6 +32,8 @@ GymAI is a full-stack fitness platform built to make training smarter and more e
 ---
 
 ## 🚀 Getting Started
+
+Clone the project repository in your local system
 
 ### Backend Setup
 ```
