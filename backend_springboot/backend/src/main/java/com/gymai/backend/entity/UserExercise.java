@@ -1,5 +1,7 @@
 package com.gymai.backend.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -29,4 +31,11 @@ public class UserExercise{
 
     @Column(name = "last_weight")
     private Double lastWeight;
+
+    @ManyToOne
+    @JoinColumn(name = "last_workout_entry_exercise_id")
+    private WorkoutEntryExercise lastWorkoutEntryExercise;
+
+    @Column(name = "last_performed_at")
+    private LocalDateTime lastPerformedAt;
 }

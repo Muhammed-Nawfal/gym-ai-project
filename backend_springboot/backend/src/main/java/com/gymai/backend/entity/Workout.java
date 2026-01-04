@@ -23,11 +23,23 @@ public class Workout {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToMany
-    @JoinTable(
-        name="workout_exercises",
-        joinColumns = @JoinColumn(name = "workout_id"),
-        inverseJoinColumns = @JoinColumn(name = "exercise_id")
+    @OneToMany(
+        mappedBy = "workout", 
+        cascade = CascadeType.ALL, 
+        orphanRemoval = true
     )
-    private List<Exercise> workoutExercises = new ArrayList<>(); 
+    @OrderBy("orderIndex ASC")
+    private List<WorkoutExercise> workoutExercises = new ArrayList<>();
+
+    @Column(name = "is_predefined")
+    private Boolean isPredefined = false;
+
+    @ElementCollection(targetClass = MuscleGroup.class)
+    @CollectionTable(name = "workout_muscle_groups", joinColumns = @JoinColumn(name = "workout_id"))
+    @Enumerated(EnumType.STRING) // store as text instead of numbers
+    @Column(name = "muscle_group")
+    private List<MuscleGroup> muscleGroups = new ArrayList<>();
+
+    @Column(name = "description")
+    private String description;
 }

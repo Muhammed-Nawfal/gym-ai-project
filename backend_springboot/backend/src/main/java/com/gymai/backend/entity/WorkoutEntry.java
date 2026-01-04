@@ -1,6 +1,6 @@
 package com.gymai.backend.entity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,8 +15,11 @@ public class WorkoutEntry {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "performed_date")
-    private LocalDate performedDate;
+    @Column(name = "started_at", nullable = false)
+    private LocalDateTime startedAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id") 
@@ -24,6 +27,5 @@ public class WorkoutEntry {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "workout_id")
-    private Workout workout; 
-    
+    private Workout workout;
 }
