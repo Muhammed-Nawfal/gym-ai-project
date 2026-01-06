@@ -5,41 +5,42 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import com.gymai.backend.entity.WorkoutEntry;
 import com.gymai.backend.service.WorkoutEntryService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 
-@Controller
+@RestController
 @RequestMapping("/api/workout-entry")
 @RequiredArgsConstructor
 public class WorkoutEntryController {
 
-    private WorkoutEntryService workoutEntryService;
+    private final WorkoutEntryService workoutEntryService;
 
     @PostMapping("/add")
     public ResponseEntity<WorkoutEntry> addWorkoutEntry(@RequestBody WorkoutEntry we){
         return ResponseEntity.ok(workoutEntryService.addWorkoutEntry(we));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<List<WorkoutEntry>> getWorkoutEntriesForUser(@PathVariable Long userID){
-        return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesForUser(userID));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<WorkoutEntry>> getWorkoutEntriesForUser(@PathVariable Long userId){
+        return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesForUser(userId));
     }
 
-    @GetMapping
-    public ResponseEntity<List<WorkoutEntry>> getWorkoutEntriesWithDate(
-        @RequestParam Long userId, 
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesWithDate(userId, date));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<WorkoutEntry>> getWorkoutEntries(
+        @PathVariable Long userId,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate date
+    ) {
+        if (date != null) {
+            return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesWithDate(userId, date));
+        }
+        return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesForUser(userId));
     }
+
     
 }

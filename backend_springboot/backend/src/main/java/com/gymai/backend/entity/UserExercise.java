@@ -23,15 +23,6 @@ public class UserExercise{
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
 
-    @Column(name = "last_sets")
-    private Integer lastSets;
-
-    @Column(name = "last_reps")
-    private Integer lastReps;   
-
-    @Column(name = "last_weight")
-    private Double lastWeight;
-
     @ManyToOne
     @JoinColumn(name = "last_workout_entry_exercise_id")
     private WorkoutEntryExercise lastWorkoutEntryExercise;

@@ -30,6 +30,9 @@ public class WorkoutExercise {
     @Column(name = "target_reps")
     private Integer targetReps;
 
+    @Column(name = "target_weight_kg")
+    private Integer targetWeightKg;
+
     @Column(name = "rest_seconds")
     private Integer restSeconds;
 }

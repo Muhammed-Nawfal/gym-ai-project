@@ -1,53 +1,68 @@
 package com.gymai.backend.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.gymai.backend.dto.PreviousExercisePerformanceResponse;
+import com.gymai.backend.dto.PreviousSetDto;
 import com.gymai.backend.entity.UserExercise;
-import com.gymai.backend.entity.Exercise;
-import com.gymai.backend.entity.User;
-import com.gymai.backend.repository.ExerciseRepository;
+import com.gymai.backend.entity.WorkoutEntryExercise;
+import com.gymai.backend.entity.WorkoutEntrySet;
 import com.gymai.backend.repository.UserExerciseRepository;
-import com.gymai.backend.repository.UserRepository;
+import com.gymai.backend.repository.WorkoutEntrySetRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UserExerciseService {
-    
+
     private final UserExerciseRepository userExerciseRepository;
-    private final UserRepository userRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final WorkoutEntrySetRepository workoutEntrySetRepository;
 
-    public List<UserExercise> getUserExercises(Long userId){
-        User user = userRepository.findById(userId).orElseThrow();
-        return userExerciseRepository.findByUser(user);
+    public List<UserExercise> getUserExercises(Long userId) {
+        return userExerciseRepository.findByUserId(userId);
     }
 
-    public UserExercise getUserExerciseDetails(Long userId, Long exerciseId){
+    public PreviousExercisePerformanceResponse getPreviousPerformance(Long userId, Long exerciseId) {
 
+        UserExercise ue = userExerciseRepository
+            .findByUserIdAndExerciseId(userId, exerciseId)
+            .orElse(null);
 
-        return userExerciseRepository.findByUserIdAndExerciseId(userId, exerciseId)
-        .orElseThrow(() -> new RuntimeException("No history yet for this exercise"));
+        if (ue == null || ue.getLastWorkoutEntryExercise() == null) {
+            return null; 
+        }
+
+        WorkoutEntryExercise last = ue.getLastWorkoutEntryExercise();
+
+        List<WorkoutEntrySet> sets =
+            workoutEntrySetRepository.findByWorkoutEntryExerciseIdOrderBySetIndexAsc(last.getId());
+
+        LocalDateTime performedAt = null;
+        if (last.getWorkoutEntry() != null) {
+            performedAt = last.getWorkoutEntry().getCompletedAt() != null
+                ? last.getWorkoutEntry().getCompletedAt()
+                : last.getWorkoutEntry().getStartedAt();
+        }
+
+        return PreviousExercisePerformanceResponse.builder()
+            .exerciseId(last.getExercise().getId())
+            .exerciseName(last.getExercise().getName())
+            .performedAt(performedAt)
+            .sets(sets.stream()
+                .map((WorkoutEntrySet s) -> PreviousSetDto.builder()
+                    .setIndex(s.getSetIndex())
+                    .weight(s.getWeight())
+                    .reps(s.getReps())
+                    .completed(s.getCompleted())
+                    .build()
+                )
+                .collect(Collectors.toList())
+            )
+            .build();
     }
-
-    public UserExercise updatesSetsAndReps(UserExercise usx){
-        User user = userRepository.findById(usx.getUser().getId()).orElseThrow();
-        Exercise ex = exerciseRepository.findById(usx.getExercise().getId()).orElseThrow();
-
-        UserExercise ue = userExerciseRepository.findByUserIdAndExerciseId(user.getId(), ex.getId())
-            .orElse(new UserExercise());
-
-        ue.setUser(user);
-        ue.setExercise(ex);
-        ue.setLastReps(usx.getLastReps());
-        ue.setLastSets(usx.getLastSets());
-        ue.setLastWeight(usx.getLastWeight());
-
-        return userExerciseRepository.save(ue);
-    }
-
-
 }

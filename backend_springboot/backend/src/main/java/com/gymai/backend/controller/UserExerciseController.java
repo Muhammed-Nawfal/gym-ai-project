@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
+import com.gymai.backend.dto.PreviousExercisePerformanceResponse;
 import com.gymai.backend.entity.UserExercise;
 import com.gymai.backend.service.UserExerciseService;
 
@@ -18,20 +18,15 @@ public class UserExerciseController {
 
     private final UserExerciseService userExerciseService;
 
-    @GetMapping("/{userid}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<UserExercise>> getUserExercises(@PathVariable Long userId){
         List<UserExercise> userExercises = userExerciseService.getUserExercises(userId);
         return ResponseEntity.ok(userExercises);
     }
 
-    @GetMapping
-    public ResponseEntity<UserExercise> getUserExerciseDetails(@PathVariable Long userId, Long exId){
-        return ResponseEntity.ok(userExerciseService.getUserExerciseDetails(userId, exId));
-    }
-
-    @PutMapping("/{userId}/{exId}")
-    public ResponseEntity<UserExercise> updatesSetsAndReps(@RequestBody UserExercise usx){
-        return ResponseEntity.ok(userExerciseService.updatesSetsAndReps(usx));   
+    @GetMapping("/user/{userId}/exercise/{exerciseId}/previous-performance")
+    public ResponseEntity<PreviousExercisePerformanceResponse> getPreviousPerformance(@PathVariable Long userId, @PathVariable Long exerciseId){
+        return ResponseEntity.ok(userExerciseService.getPreviousPerformance(userId, exerciseId));
     }
     
 }

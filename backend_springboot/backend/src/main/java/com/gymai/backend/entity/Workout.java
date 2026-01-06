@@ -3,6 +3,8 @@ package com.gymai.backend.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gymai.backend.enums.MuscleGroup;
+
 import jakarta.persistence.*;
 import lombok.Data;
 

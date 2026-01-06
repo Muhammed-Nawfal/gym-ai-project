@@ -12,6 +12,9 @@ import com.gymai.backend.entity.Workout;
 public interface WorkoutRepository extends JpaRepository<Workout, Long> {
 
     List<Workout> findByUserId(Long userId);
+
+    List<Workout> findByPredefinedTrue();
+    
     Optional<Workout> findByName(String name);
     
 } 
