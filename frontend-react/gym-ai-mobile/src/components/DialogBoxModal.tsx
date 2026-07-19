@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxHeight: "85%",
+    flexShrink: 1,
     backgroundColor: "#0a0a0a",
     borderRadius: 12,
     borderWidth: 1,
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     color: "#d4af37",
   },
   body: {
+    flexShrink: 1,
     paddingHorizontal: 20,
   },
 });
