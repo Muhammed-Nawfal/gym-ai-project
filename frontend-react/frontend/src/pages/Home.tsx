@@ -8,6 +8,7 @@ import axios from "axios";
 const Home: React.FC = () => {
 
   const[user, setUser] = useState<any>(null);
+  const [totalWorkouts, setTotalWorkouts] = useState<number>(0);
 
   const { token } = useAuth();
 
@@ -23,6 +24,22 @@ const Home: React.FC = () => {
     )
     .catch(err => {
        console.error("Failed to fetch profile:", err);
+    });
+  }, [] );
+
+
+  useEffect(() => {
+    axios.get(
+      `/api/workout-entry/count/${user?.id}`, 
+      {headers: { Authorization: `Bearer ${token}` }}
+    )
+    .then(
+      res => {
+        setTotalWorkouts(res.data);
+      }
+    )
+    .catch(err => {
+       console.error("Failed to fetch the count:", err);
     });
   }, [] );
 
@@ -45,7 +62,7 @@ const Home: React.FC = () => {
         <section className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard 
             title="Total Workouts" 
-            value={<span className="text-brand-gold">0</span>}
+            value={<span className="text-brand-gold">{totalWorkouts}</span>}
             icon={<Zap className="text-brand-gold" size={30} />}
           />
           <StatsCard 

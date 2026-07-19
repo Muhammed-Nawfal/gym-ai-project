@@ -21,4 +21,6 @@ public class SessionExerciseDto {
     private List<PreviousSetDto> previousSets;
 
     private List<SessionSetDto> currentSets;
+
+    private String notes;
 }

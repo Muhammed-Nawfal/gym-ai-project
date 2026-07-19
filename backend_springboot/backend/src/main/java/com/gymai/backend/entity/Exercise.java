@@ -21,12 +21,17 @@ public class Exercise {
     @Column(name = "name", nullable = false)
     private String name;
 
-    //this will create a new table with excercise id and muscle group
-    @ElementCollection(targetClass = MuscleGroup.class)
-    @CollectionTable(name = "exercise_muscle_groups", joinColumns = @JoinColumn(name = "exercise_id"))
-    @Enumerated(EnumType.STRING) // store as text instead of numbers
-    @Column(name = "muscle_group")
-    private List<MuscleGroup> muscleGroups = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "primary_muscle_group", nullable = false)
+    private MuscleGroup primaryMuscleGroup;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "secondary_muscle_group")
+    private MuscleGroup secondaryMuscleGroup;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tertiary_muscle_group")
+    private MuscleGroup tertiaryMuscleGroup;
 
     @Column(name = "description")
     private String description;

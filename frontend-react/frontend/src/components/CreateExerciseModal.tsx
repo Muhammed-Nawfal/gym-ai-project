@@ -5,6 +5,7 @@ import TextField from "./TextField";
 import { MuscleGroup } from "../types/MuscleGroup";
 import { Label } from "@headlessui/react";
 import DropDownTextField from "./DropDownTextField";
+import DialogBoxModal from "./DialogBoxModal";
 
 interface CreateExerciseModalProps {
   onClose: () => void;
@@ -16,7 +17,9 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
 
     const [formData, setFormData] = useState({
         name: "",
-        muscleGroups: [] as string[],
+        primaryMuscleGroup: "",
+        secondaryMuscleGroup: "",
+        tertiaryMuscleGroup: "",
         description: "",
         youtubeLink: "",
     });
@@ -37,24 +40,28 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const { name, muscleGroups, description, youtubeLink } = formData;
+        const { name, primaryMuscleGroup, secondaryMuscleGroup, tertiaryMuscleGroup, description, youtubeLink } = formData;
 
-        if (!name || !muscleGroups) {
-            setError("Enter a name and select a muscle group");
+        if (!name || !primaryMuscleGroup) {
+            setError("Enter a name and select a primary muscle group");
             return;
         }
         else if(!name) {
             setError("Enter a name");
             return;
         }
-        else if (!(muscleGroups.length>0)){
-            setError("Select a muscle group");
+        else if (!formData.primaryMuscleGroup){
+            setError("Select a primary muscle group");
             return;
         }
         
 
         try{
-            await axios.post("/api/exercise/add", formData, {
+            await axios.post("/api/exercise/add", {
+              ...formData,
+              secondaryMuscleGroup: formData.secondaryMuscleGroup || null,
+              tertiaryMuscleGroup: formData.tertiaryMuscleGroup || null,
+            }, {
                 headers: { Authorization: `Bearer ${token}`},
             });
             onCreated();
@@ -76,11 +83,12 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
     ];
 
     return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
-      <div className="w-full max-w-xl p-6 relative max-h-[90vh] overflow-y-auto bg-black/95 border-2 border-brand-gold/10 rounded-lg">
-        <div className="flex justify-between items-center mb-1">
-          <h2 className="text-brand-gold text-2xl font-semibold">Create Custom Exercise</h2>
-        </div>
+
+      <DialogBoxModal
+        open={true}
+        onClose={onClose}
+        title="Create Custom Exercise"
+      >
         <p className="muted mb-10">
           Add a new exercise and contribute to the app
         </p>
@@ -96,13 +104,25 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
           />
 
           <DropDownTextField
-            label="Muscle Groups"
-            placeholder="Select one or more"
-            value={formData.muscleGroups}
-            onChange={(vals) => setFormData({ ...formData, muscleGroups: vals })}
+            label="Primary Muscle"
+            value={formData.primaryMuscleGroup}
+            onChange={(val) => handleChange("primaryMuscleGroup", val)}
             options={muscleGroupOptions}
-            multiSelect={true}
-            />
+          />
+
+          <DropDownTextField
+            label="Secondary Muscle (optional)"
+            value={formData.secondaryMuscleGroup}
+            onChange={(val) => handleChange("secondaryMuscleGroup", val)}
+            options={[{ value: "", label: "None" }, ...muscleGroupOptions]}
+          />
+
+          <DropDownTextField
+            label="Tertiary Muscle (optional)"
+            value={formData.tertiaryMuscleGroup}
+            onChange={(val) => handleChange("tertiaryMuscleGroup", val)}
+            options={[{ value: "", label: "None" }, ...muscleGroupOptions]}
+          />
 
           <TextField
             label="Description"
@@ -140,8 +160,8 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
           </div>
         </form>
         {error && <p className="text-red-500 mt-3">{error}</p>}
-      </div>
-    </div>
+      </DialogBoxModal>
+
   );
 };
 

@@ -8,6 +8,7 @@ target/
 *.log
 *.jar
 *.class
+application-secrets.properties
 
 # VSCode
 .vscode/

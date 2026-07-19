@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.gymai.backend.dto.SyncWorkoutExercisesRequest;
 import com.gymai.backend.dto.WorkoutExerciseRequest;
 import com.gymai.backend.dto.WorkoutExerciseResponse;
 import com.gymai.backend.entity.WorkoutExercise;
@@ -57,6 +58,20 @@ public class WorkoutExerciseController {
     ) {
         workoutExerciseService.removeWorkoutExercise(workoutExerciseId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/sync")
+    public ResponseEntity<List<WorkoutExerciseResponse>> syncWorkoutExercises(
+            @PathVariable Long workoutId,
+            @RequestBody SyncWorkoutExercisesRequest req
+    ) {
+        List<WorkoutExerciseResponse> response =
+            workoutExerciseService.syncWorkoutExercises(workoutId, req)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 
 

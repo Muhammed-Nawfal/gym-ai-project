@@ -6,13 +6,16 @@ import { useAuth } from "../context/AuthContext";
 import ExerciseModal from "../components/ExerciseModal";
 import { Dumbbell, PlayCircle, Plus } from "lucide-react";
 import CreateExerciseModal from "../components/CreateExerciseModal";
+import WorkoutAndExerciseCard from "../components/WorkoutAndExerciseCard";
 
 interface Exercise {
   id: number;
   name: string;
   description: string;
   youtubeLink?: string;
-  muscleGroups: string[];
+  primaryMuscleGroup: string;
+  secondaryMuscleGroup?: string;
+  tertiaryMuscleGroup?: string;
 }
 
 const Exercise: React.FC = () => {
@@ -71,11 +74,15 @@ const Exercise: React.FC = () => {
     const filteredExercises = exercises.filter((ex) => {
         const matchesSearch = 
             ex.name.toLowerCase().includes(search.toLowerCase()) || 
-            ex.muscleGroups.some(m => m.toLowerCase().includes(search.toLowerCase()));
+            ex.primaryMuscleGroup.toLowerCase().includes(search.toLowerCase()) ||
+            ex.secondaryMuscleGroup?.toLowerCase().includes(search.toLowerCase()) ||
+            ex.tertiaryMuscleGroup?.toLowerCase().includes(search.toLowerCase());
 
         const matchesMuscle = 
             filters.muscleGroup === "all" || 
-            ex.muscleGroups.includes(filters.muscleGroup);
+            ex.primaryMuscleGroup.includes(filters.muscleGroup) ||
+            ex.secondaryMuscleGroup?.includes(filters.muscleGroup) ||
+            ex.tertiaryMuscleGroup?.includes(filters.muscleGroup);
 
         return matchesSearch && matchesMuscle;
     });
@@ -104,31 +111,15 @@ const Exercise: React.FC = () => {
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                     {filteredExercises.map((ex)=> (
-                        <div
-                            key={ex.id}
-                            onClick={() => setSelectedExercise(ex)}
-                            className="card card-hover card-hover-gold p-5 flex flex-col cursor-pointer relative h-full"
-                        >
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    <Dumbbell className="w-5 h-5 text-brand-gold" />
-                                    <h2 className="text-lg font-semibold">{ex.name}</h2>
-                                </div>
-                            </div>
-                            <p className="muted mb-6 line-clamp-1">{ex.description || "No description"}</p>
 
-                                
-                            <div className="mt-auto flex flex-wrap gap-2">
-                                {ex.muscleGroups.map((muscle,idx) => (
-                                    <span
-                                        key={idx}
-                                        className="px-3 py-2 rounded-md text-xs bg-black/30 border border-brand-goldDark text-brand-gold"
-                                        >
-                                            {muscle}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
+                        <WorkoutAndExerciseCard
+                            key={ex.id}
+                            title={ex.name}
+                            description={ex.description}
+                            icon={<Dumbbell className="w-5 h-5 text-brand-gold" />}
+                            badges={[ex.primaryMuscleGroup, ex.secondaryMuscleGroup, ex.tertiaryMuscleGroup].filter(Boolean) as string[]}
+                            onClick={() => setSelectedExercise(ex)}
+                        />
                     ))}
                 </div>
 

@@ -9,6 +9,7 @@ import OnBoarding from "./pages/OnBoarding";
 import { RegistrationProvider } from "./context/RegistrationContext";
 import { AuthProvider } from "./context/AuthContext";
 import Exercise from "./pages/Exercise";
+import Workout from "./pages/Workout";
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
             <Route path="/login" element= {<Login/>}/>
             <Route path="/home" element={<Home />} />
             <Route path="/exercise" element={<Exercise />} />
+            <Route path="/workout" element={<Workout />} />
 
             <Route element={<RegistrationProvider><Outlet /></RegistrationProvider>}>
               <Route path="/register" element={<Register />} />

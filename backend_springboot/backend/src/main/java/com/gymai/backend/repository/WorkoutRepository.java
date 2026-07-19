@@ -13,8 +13,11 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
 
     List<Workout> findByUserId(Long userId);
 
-    List<Workout> findByPredefinedTrue();
+    List<Workout> findByIsPredefinedTrue();
     
     Optional<Workout> findByName(String name);
+
+    boolean existsByUserIdAndPredefinedWorkoutId(Long userId, Long predefinedWorkoutId);
+
     
 } 

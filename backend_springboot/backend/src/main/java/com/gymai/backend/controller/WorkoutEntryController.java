@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.gymai.backend.entity.User;
 import com.gymai.backend.entity.WorkoutEntry;
 import com.gymai.backend.service.WorkoutEntryService;
 
@@ -25,11 +26,6 @@ public class WorkoutEntryController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<WorkoutEntry>> getWorkoutEntriesForUser(@PathVariable Long userId){
-        return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesForUser(userId));
-    }
-
-    @GetMapping("/user/{userId}")
     public ResponseEntity<List<WorkoutEntry>> getWorkoutEntries(
         @PathVariable Long userId,
         @RequestParam(required = false)
@@ -40,6 +36,11 @@ public class WorkoutEntryController {
             return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesWithDate(userId, date));
         }
         return ResponseEntity.ok(workoutEntryService.getWorkoutEntriesForUser(userId));
+    }
+
+    @GetMapping("/count/{userId}")
+    public long getWorkoutCount(@PathVariable Long userId) {
+        return workoutEntryService.getWorkoutCountForUserId(userId);
     }
 
     

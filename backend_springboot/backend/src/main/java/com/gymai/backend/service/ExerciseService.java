@@ -17,6 +17,7 @@ public class ExerciseService {
     private final ExerciseRepository exerciseRepository;
 
     public Exercise addExercise(Exercise exercise){
+        validateGroups(exercise);
         return exerciseRepository.save(exercise);
     }
 
@@ -33,6 +34,19 @@ public class ExerciseService {
             throw new EntityNotFoundException("Exercise not found with id: " + id);
         }
         exerciseRepository.deleteById(id);
+    }
+
+    private void validateGroups(Exercise e) {
+        if (e.getPrimaryMuscleGroup() == null)
+            throw new IllegalArgumentException("Primary muscle group is required");
+
+        if (e.getSecondaryMuscleGroup() != null && e.getSecondaryMuscleGroup() == e.getPrimaryMuscleGroup())
+            throw new IllegalArgumentException("Secondary cannot equal primary");
+
+        if (e.getTertiaryMuscleGroup() != null &&
+            (e.getTertiaryMuscleGroup() == e.getPrimaryMuscleGroup() ||
+            (e.getSecondaryMuscleGroup() != null && e.getTertiaryMuscleGroup() == e.getSecondaryMuscleGroup())))
+            throw new IllegalArgumentException("Tertiary must be different");
     }
     
 }

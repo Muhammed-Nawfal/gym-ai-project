@@ -25,7 +25,11 @@ public class WorkoutEntryService {
     }
 
     public List<WorkoutEntry> getWorkoutEntriesWithDate(Long userId, LocalDate date){
-        return workoutEntryRepository.findByUserIdAndPerformedDate(userId, date);    
+        return workoutEntryRepository.findByUserIdAndCompletedAt(userId, date);    
+    }
+
+    public long getWorkoutCountForUserId(Long userId) {
+        return workoutEntryRepository.countByUser_IdAndCompletedAtIsNotNull(userId);
     }
     
 }

@@ -1,9 +1,13 @@
 package com.gymai.backend.service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gymai.backend.dto.AddExerciseToSessionRequest;
 import com.gymai.backend.dto.PreviousSetDto;
@@ -11,6 +15,7 @@ import com.gymai.backend.dto.SessionExerciseDto;
 import com.gymai.backend.dto.SessionSetDto;
 import com.gymai.backend.dto.StartWorkoutRequest;
 import com.gymai.backend.dto.StartWorkoutResponse;
+import com.gymai.backend.dto.UpdateSessionExerciseRequest;
 import com.gymai.backend.dto.UpdateSetRequest;
 import com.gymai.backend.entity.Exercise;
 import com.gymai.backend.entity.User;
@@ -30,8 +35,6 @@ import com.gymai.backend.repository.WorkoutExerciseRepository;
 import com.gymai.backend.repository.WorkoutRepository;
 
 import jakarta.persistence.EntityNotFoundException;
-
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -63,6 +66,13 @@ public class WorkoutSessionService {
         Workout workout = workoutRepository.findById(req.getWorkoutId())
                 .orElseThrow(() -> new IllegalArgumentException("Workout not found with id: " + req.getWorkoutId()));
 
+        Optional<WorkoutEntry> activeOpt = workoutEntryRepository
+            .findFirstByUserIdAndCompletedAtIsNullOrderByStartedAtDesc(req.getUserId());
+
+        if (activeOpt.isPresent()) {
+            throw new IllegalStateException("You already have an active workout session.");
+        }
+
         WorkoutEntry workoutEntry = new WorkoutEntry();
         workoutEntry.setUser(user);
         workoutEntry.setWorkout(workout);
@@ -93,7 +103,7 @@ public class WorkoutSessionService {
                 set.setSetIndex(i);
                 set.setWeight(null);
                 set.setReps(null);
-                set.setCompleted(null);
+                set.setCompleted(false);
                 set.setCompletedAt(null);
                 sets.add(workoutEntrySetRepository.save(set));
             }
@@ -112,6 +122,26 @@ public class WorkoutSessionService {
             .startedAt(workoutEntry.getStartedAt())
             .exercises(sessionExercises)
             .build();
+    }
+
+    @Transactional
+    public SessionExerciseDto updateSessionExercise(Long workoutEntryExerciseId, UpdateSessionExerciseRequest req) {
+        WorkoutEntryExercise ex = workoutEntryExerciseRepository.findById(workoutEntryExerciseId)
+            .orElseThrow(() -> new IllegalArgumentException("WorkoutEntryExercise not found with id: " + workoutEntryExerciseId));
+
+        if (req.getOrderIndex() != null) ex.setOrderIndex(req.getOrderIndex());
+
+        if (req.getRestSeconds() != null) ex.setRestSeconds(req.getRestSeconds());
+        if (req.getNotes() != null) ex.setNotes(req.getNotes());
+        ex = workoutEntryExerciseRepository.save(ex);
+
+        List<WorkoutEntrySet> currentSets =
+            workoutEntrySetRepository.findByWorkoutEntryExerciseIdOrderBySetIndexAsc(ex.getId());
+
+        List<PreviousSetDto> previousSets =
+            loadPreviousSets(ex.getWorkoutEntry().getUser().getId(), ex.getExercise().getId());
+
+        return toSessionExerciseDto(ex, previousSets, currentSets);
     }
 
     //Adding an exercise while working out
@@ -275,6 +305,18 @@ public class WorkoutSessionService {
 
         return getSession(activeEntry.getId());
     }
+
+    @Transactional
+    public void discardWorkoutSession(Long workoutEntryId) {
+        WorkoutEntry workoutEntry = workoutEntryRepository.findById(workoutEntryId)
+            .orElseThrow(() -> new IllegalArgumentException("WorkoutEntry not found with id: " + workoutEntryId));
+
+        if (workoutEntry.getCompletedAt() != null) {
+            throw new IllegalArgumentException("Workout session is already completed");
+        }
+        
+        workoutEntryRepository.delete(workoutEntry);
+    }
     
     private List<PreviousSetDto> loadPreviousSets(Long userId, Long exerciseId) {
         return userExerciseRepository.findByUserIdAndExerciseId(userId, exerciseId)
@@ -325,6 +367,7 @@ public class WorkoutSessionService {
             .targetReps(ex.getTargetReps())
             .previousSets(previousSets)
             .currentSets(current)
+            .notes(ex.getNotes())
             .build();
     }
 

@@ -44,4 +44,7 @@ public class Workout {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "predefined_workout_id")
+    private Long predefinedWorkoutId;
 }

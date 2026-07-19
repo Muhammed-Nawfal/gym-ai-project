@@ -42,4 +42,8 @@ public class WorkoutEntryExercise {
     @OneToMany(mappedBy = "workoutEntryExercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("setIndex ASC")
     private List<WorkoutEntrySet> sets = new ArrayList<>();
+
+    @Column(name="notes", columnDefinition="TEXT")
+    private String notes;
+
 }

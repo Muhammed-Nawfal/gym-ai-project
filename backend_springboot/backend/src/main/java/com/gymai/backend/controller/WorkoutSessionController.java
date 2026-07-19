@@ -15,6 +15,7 @@ import com.gymai.backend.dto.SessionExerciseDto;
 import com.gymai.backend.dto.SessionSetDto;
 import com.gymai.backend.dto.StartWorkoutRequest;
 import com.gymai.backend.dto.StartWorkoutResponse;
+import com.gymai.backend.dto.UpdateSessionExerciseRequest;
 import com.gymai.backend.dto.UpdateSetRequest;
 import com.gymai.backend.service.WorkoutSessionService;
 
@@ -37,7 +38,7 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(workoutSessionService.addExerciseToSession(workoutEntryId, ex));
     }
 
-    @PostMapping("/{workoutEntryId}/add-set")
+    @PostMapping("/{workoutEntryExerciseId}/add-set")
     public ResponseEntity<SessionSetDto> addSetToExerciseInSession(@PathVariable Long workoutEntryExerciseId) {
         return ResponseEntity.ok(workoutSessionService.addSetToExistingExercise(workoutEntryExerciseId));
     }
@@ -68,4 +69,19 @@ public class WorkoutSessionController {
     public ResponseEntity<StartWorkoutResponse> getOngoingWorkoutSession(@PathVariable Long userId){
         return ResponseEntity.ok(workoutSessionService.getCurrentActiveSessionForUser(userId));
     }
+
+    @PutMapping("/exercises/{workoutEntryExerciseId}")
+    public ResponseEntity<SessionExerciseDto> updateSessionExercise(
+        @PathVariable Long workoutEntryExerciseId,
+        @RequestBody UpdateSessionExerciseRequest request
+    ) {
+        return ResponseEntity.ok(workoutSessionService.updateSessionExercise(workoutEntryExerciseId, request));
+    }
+
+    @DeleteMapping("/{workoutEntryId}/discard")
+    public ResponseEntity<Void> discardWorkoutSession(@PathVariable Long workoutEntryId) {
+        workoutSessionService.discardWorkoutSession(workoutEntryId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

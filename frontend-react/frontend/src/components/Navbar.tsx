@@ -37,10 +37,17 @@ const Navbar: React.FC = () => {
               Home
           </Link>
 
-          <a className="flex items-center gap-2 text-zinc-400 hover:text-brand-gold transition-colors">
-            <Dumbbell size={16} />
-            Workouts
-          </a>
+          <Link 
+            to="/workout"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
+              isActive("/workout")
+                ? "bg-brand-gold text-black font-medium"
+                : "text-zinc-400 hover:text-brand-gold"
+              }`}
+            >
+              <Dumbbell size={16} />
+              Workouts
+          </Link>
 
           <Link 
             to="/exercise"

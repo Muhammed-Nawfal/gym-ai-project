@@ -28,23 +28,39 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
   type,
 }) => {
 
-    const [showFilters, setShowFilters]= useState(false);
+    // const [showFilters, setShowFilters]= useState(false);
 
-    return(
-        <div className="w-full space-y-4 mb-6 border border-brand-goldDark/30 p-5 rounded-lg bg-black/50">
-            <div className="flex items-center gap-3">
-                <div className="flex-1 flex items-center gap-2 border border-brand-gold/10 rounded-lg px-3 py-2 bg-black/20">
-                    <Search className="w-5 h-5 muted"/>
-                    <input
-                        type={type}
-                        placeholder={placeholder}
-                        value={search}
-                        onChange={(e)=> onSearchChange(e.target.value)} 
-                        className="flex-1 bg-transparent outline-none text-sm"
+    return (
+        <div className="w-full mb-6 border border-brand-goldDark/30 p-5 rounded-lg bg-black/50">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Search */}
+            <div className="flex-1 flex items-center gap-2 border border-brand-gold/10 rounded-lg px-3 py-2 bg-black/20">
+                <Search className="w-5 h-5 muted" />
+                <input
+                type={type}
+                placeholder={placeholder}
+                value={search}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-sm"
+                />
+            </div>
+
+            {filterOptions && filters && onFilterChange && (
+                <div className="sm:w-64">
+                {filterOptions.slice(0, 1).map((filter) => (
+                    <DropDownTextField
+                    key={filter.category}
+                    value={filters[filter.category]}
+                    onChange={(val) => onFilterChange(filter.category, val)}
+                    options={filter.options}
                     />
+                ))}
                 </div>
+            )}
 
-                <button
+
+
+                {/* <button
                     onClick={()=> setShowFilters((prev)=>!prev)}
                      className={`flex items-center gap-2 px-3 py-2 rounded-md border transition ${
                         showFilters
@@ -54,22 +70,8 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
                     >
                         <Filter className="w-4 h-4" />
                         Filters
-                </button>
+                </button> */}
             </div>
-
-            {showFilters && filterOptions && filters && onFilterChange &&(
-                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-brand-gold/10">
-                    {filterOptions?.map((filter) => (
-                        <DropDownTextField
-                            key={filter.category}
-                            label={filter.label}
-                            value={filters[filter.category]}
-                            onChange={(val) => onFilterChange(filter.category, val)}
-                            options={filter.options}
-                            />
-                    ))}
-                </div>
-            )}
         </div>
     );
 
