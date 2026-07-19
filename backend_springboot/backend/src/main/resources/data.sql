@@ -1,0 +1,39 @@
+-- -- =====================
+-- -- Seed Exercises
+-- -- =====================
+-- INSERT INTO exercise (id, name, description, youtube_link)
+-- VALUES
+-- (1, 'Bench Press', 'Compound chest exercise with barbell.', 'https://youtu.be/rT7DgCr-3pg'),
+-- (2, 'Squat', 'Lower body strength exercise.', 'https://youtu.be/YaXPRqUwItQ'),
+-- (3, 'Deadlift', 'Posterior chain exercise with barbell.', 'https://youtu.be/op9kVnSso6Q'),
+-- (4, 'Overhead Press', 'Shoulder pressing exercise.', 'https://youtu.be/B-aVuyhvLHU'),
+-- (5, 'Pull-Up', 'Bodyweight back exercise.', 'https://youtu.be/eGo4IYlbE5g'),
+-- (6, 'Bicep Curl', 'Isolation exercise for bicep.', 'https://youtu.be/in7PaeYlhrM'),
+-- (7, 'Tricep Dip', 'Bodyweight tricep exercise.', 'https://youtu.be/6kALZikXxLc'),
+-- (8, 'Lunge', 'Unilateral leg exercise.', 'https://youtu.be/QOVaHwm-Q6U'),
+-- (9, 'Leg Press', 'Compound lower body machine exercise.', 'https://youtu.be/IZxyjW7MPJQ'),
+-- (10, 'Chest Fly', 'Chest isolation exercise.', 'https://youtu.be/eozdVDA78K0');
+
+-- -- =====================
+-- -- Seed Muscle Groups Mapping
+-- -- =====================
+-- -- -- Bench Press
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (1, 'CHEST'), (1, 'TRICEP'), (1, 'SHOULDERS');
+-- -- -- Squat
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (2, 'LEG');
+-- -- -- Deadlift
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (3, 'BACK'), (3, 'LEG');
+-- -- -- Overhead Press
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (4, 'SHOULDERS'), (4, 'TRICEP');
+-- -- -- Pull-Up
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (5, 'BACK'), (5, 'BICEP');
+-- -- -- Bicep Curl
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (6, 'BICEP');
+-- -- -- Tricep Dip
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (7, 'TRICEP'), (7, 'CHEST');
+-- -- -- Lunge
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (8, 'LEG');
+-- -- -- Leg Press
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (9, 'LEG');
+-- -- -- Chest Fly
+-- INSERT INTO exercise_muscle_groups (exercise_id, muscle_group) VALUES (10, 'CHEST');

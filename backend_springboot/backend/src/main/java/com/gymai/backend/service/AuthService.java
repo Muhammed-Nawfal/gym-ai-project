@@ -1,38 +1,47 @@
 package com.gymai.backend.service;
 
+import com.gymai.backend.dto.AuthResponse;
+import com.gymai.backend.dto.LoginRequest;
 import com.gymai.backend.dto.RegisterRequest;
 import com.gymai.backend.dto.UserResponse;
 import com.gymai.backend.entity.User;
 import com.gymai.backend.repository.UserRepository;
+import com.gymai.backend.security.JwtUtils;
+
 import jakarta.transaction.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 
 @Service
+@Transactional
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     @Transactional
-    public UserResponse register(RegisterRequest req){
+    public AuthResponse register(RegisterRequest req){
 
         String email = req.getEmail().trim().toLowerCase();
         String userName = req.getUserName().trim();
 
         if(userRepository.findByEmail(email).isPresent()){
-            throw new IllegalArgumentException("Email Already in use");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         }
 
         if(userRepository.findByUserName(userName).isPresent()){
-            throw new IllegalArgumentException("Username already taken");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already in use");
         }
 
         String hash = passwordEncoder.encode(req.getPassword());
@@ -52,7 +61,9 @@ public class AuthService {
 
         try{
             User saved = userRepository.save(u);
-            return toUserResponse(saved);
+
+            String token = jwtUtils.generateToken(saved.getEmail());
+            return new AuthResponse(token, saved.getEmail());
         }
         catch(DataIntegrityViolationException ex){
             throw new IllegalArgumentException("Email or username already exists");
@@ -78,6 +89,23 @@ public class AuthService {
         r.setUpdatedAt(u.getUpdatedAt());
 
         return r;
+    }
+
+    public AuthResponse login(LoginRequest request){
+
+        String identifier = request.getEmail().trim();
+
+        User user = userRepository.findByEmail(identifier)
+            .orElseGet(() -> userRepository.findByUserName(identifier)
+            .orElseThrow(() -> new RuntimeException("User not found")));
+
+        if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())){
+            throw new RuntimeException("Username or password incorrect");
+        }
+
+        String token = jwtUtils.generateToken(user.getEmail());
+        return new AuthResponse(token, user.getEmail());
+
     }
     
 }
