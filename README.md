@@ -2,7 +2,7 @@
 
 GymAI is a full-stack fitness platform built to make training smarter and more engaging. It lets users track progress, explore curated exercises, and personalize their fitness journey — all in a sleek, modern UI.
 
-> **Status:** 🚧 Under development (expected completion: October 2025)
+> **Status:** 🚧 Under development (expected completion: August 2026)
 
 ---
 
