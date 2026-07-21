@@ -80,4 +80,13 @@ export type Exercise = {
   tertiaryMuscleGroup?: string;
 };
 
+export interface WorkoutHistoryDto {
+  workoutEntryId: number;
+  workoutName: string;
+  startedAt: string;
+  completedAt: string;
+  totalSets: number;
+  totalVolume: number;
+}
+
 

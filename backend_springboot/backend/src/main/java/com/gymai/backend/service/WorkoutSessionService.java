@@ -18,6 +18,7 @@ import com.gymai.backend.dto.StartWorkoutResponse;
 import com.gymai.backend.dto.UpdateSessionExerciseRequest;
 import com.gymai.backend.dto.UpdateSetRequest;
 import com.gymai.backend.entity.Exercise;
+import com.gymai.backend.entity.PersonalRecord;
 import com.gymai.backend.entity.User;
 import com.gymai.backend.entity.UserExercise;
 import com.gymai.backend.entity.Workout;
@@ -26,6 +27,7 @@ import com.gymai.backend.entity.WorkoutEntryExercise;
 import com.gymai.backend.entity.WorkoutEntrySet;
 import com.gymai.backend.entity.WorkoutExercise;
 import com.gymai.backend.repository.ExerciseRepository;
+import com.gymai.backend.repository.PersonalRecordRepository;
 import com.gymai.backend.repository.UserExerciseRepository;
 import com.gymai.backend.repository.UserRepository;
 import com.gymai.backend.repository.WorkoutEntryExerciseRepository;
@@ -36,6 +38,8 @@ import com.gymai.backend.repository.WorkoutRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import com.gymai.backend.dto.WorkoutHistoryDto;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +55,9 @@ public class WorkoutSessionService {
     private final UserRepository userRepository;
 
     private final UserExerciseRepository userExerciseRepository;
+
+    private final PersonalRecordService personalRecordService;
+    private final PersonalRecordRepository personalRecordRepository;
 
     //Service used when a workout session is started
     @Transactional
@@ -261,15 +268,42 @@ public class WorkoutSessionService {
 
         List<WorkoutEntryExercise> currentSessionExercises = workoutEntryExerciseRepository.findByWorkoutEntryIdOrderByOrderIndexAsc(workoutEntryId);
 
+        Long workoutId = workoutEntry.getWorkout().getId();
+        int nextOrderIndex = workoutExerciseRepository.findByWorkoutIdOrderByOrderIndexAsc(workoutId).size();
+
         for(WorkoutEntryExercise ex : currentSessionExercises){
             updateUserExerciseLastPerformed(
                 workoutEntry.getUser(),
                 ex.getExercise(),
                 ex,
-                LocalDateTime.now()                
+                LocalDateTime.now()
             );
+
+            List<WorkoutEntrySet> sets = workoutEntrySetRepository.findByWorkoutEntryExerciseIdOrderBySetIndexAsc(ex.getId());
+            WorkoutEntrySet bestSet = sets.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getCompleted()) && s.getWeight() != null && s.getReps() != null)
+                .max(Comparator.comparing(WorkoutEntrySet::getWeight))
+                .orElse(null);
+
+            if (bestSet != null) {
+                personalRecordService.recordIfNewPersonalRecord(
+                    workoutEntry.getUser(), ex.getExercise(), workoutEntry, bestSet.getWeight(), bestSet.getReps()
+                );
+            }
+
+            if (!workoutExerciseRepository.existsByWorkoutIdAndExerciseId(workoutId, ex.getExercise().getId())) {
+                WorkoutExercise templateEx = new WorkoutExercise();
+                templateEx.setWorkout(workoutEntry.getWorkout());
+                templateEx.setExercise(ex.getExercise());
+                templateEx.setOrderIndex(nextOrderIndex++);
+                templateEx.setTargetSets(ex.getTargetSets());
+                templateEx.setTargetReps(ex.getTargetReps());
+                templateEx.setTargetWeightKg(ex.getTargetWeightKg());
+                templateEx.setRestSeconds(ex.getRestSeconds());
+                workoutExerciseRepository.save(templateEx);
+            }
         }
-        
+
     }
 
     @Transactional(readOnly = true)
@@ -314,8 +348,80 @@ public class WorkoutSessionService {
         if (workoutEntry.getCompletedAt() != null) {
             throw new IllegalArgumentException("Workout session is already completed");
         }
+
+        deleteWorkoutEntryAndChildren(workoutEntry);
+    }
+
+    @Transactional
+    public void deleteWorkoutHistoryEntry(Long workoutEntryId) {
+        WorkoutEntry workoutEntry = workoutEntryRepository.findById(workoutEntryId)
+            .orElseThrow(() -> new IllegalArgumentException("WorkoutEntry not found with id: " + workoutEntryId));
+
+        if (workoutEntry.getCompletedAt() == null) {
+            throw new IllegalArgumentException("Cannot delete an in-progress workout session; discard it instead");
+        }
+
+        deleteWorkoutEntryAndChildren(workoutEntry);
+    }
+
+    void deleteWorkoutEntryAndChildren(WorkoutEntry workoutEntry) {
+        personalRecordService.handleWorkoutEntryDeletion(workoutEntry);
         
+        List<WorkoutEntryExercise> exercises = workoutEntryExerciseRepository
+            .findByWorkoutEntryIdOrderByOrderIndexAsc(workoutEntry.getId());
+
+        List<Long> exerciseIds = exercises.stream().map(WorkoutEntryExercise::getId).toList();
+        if (!exerciseIds.isEmpty()) {
+            List<UserExercise> affected = userExerciseRepository.findByLastWorkoutEntryExercise_IdIn(exerciseIds);
+            for (UserExercise ue : affected) {
+                ue.setLastWorkoutEntryExercise(null);
+                ue.setLastPerformedAt(null);
+            }
+            userExerciseRepository.saveAll(affected);
+        }
+
+        workoutEntryExerciseRepository.deleteAll(exercises);
         workoutEntryRepository.delete(workoutEntry);
+    }
+
+    @Transactional(readOnly = true)
+    public List<WorkoutHistoryDto> getWorkoutHistoryForUser(Long userId) {
+        LocalDateTime cutoff = LocalDateTime.now().minusMonths(3);
+        List<WorkoutEntry> completedEntries = workoutEntryRepository
+            .findByUserIdAndCompletedAtIsNotNullAndCompletedAtAfterOrderByCompletedAtDesc(userId, cutoff);
+
+        return completedEntries.stream()
+            .map(entry -> {
+                List<WorkoutEntryExercise> exercises =
+                    workoutEntryExerciseRepository.findByWorkoutEntryIdOrderByOrderIndexAsc(entry.getId());
+
+                int totalSets = 0;
+                double totalVolume = 0;
+
+                for (WorkoutEntryExercise ex : exercises) {
+                    List<WorkoutEntrySet> sets =
+                        workoutEntrySetRepository.findByWorkoutEntryExerciseIdOrderBySetIndexAsc(ex.getId());
+
+                    for (WorkoutEntrySet set : sets) {
+                        if (Boolean.TRUE.equals(set.getCompleted())) {
+                            totalSets++;
+                            if (set.getWeight() != null && set.getReps() != null) {
+                                totalVolume += set.getWeight() * set.getReps();
+                            }
+                        }
+                    }
+                }
+
+                return new WorkoutHistoryDto(
+                    entry.getId(),
+                    entry.getWorkout().getName(),
+                    entry.getStartedAt(),
+                    entry.getCompletedAt(),
+                    totalSets,
+                    totalVolume
+                );
+            })
+            .toList();
     }
     
     private List<PreviousSetDto> loadPreviousSets(Long userId, Long exerciseId) {
@@ -357,6 +463,8 @@ public class WorkoutSessionService {
             .map(this::toSessionSetDto)
             .toList();
 
+        Double currentPrWeight = personalRecordRepository.findByUserIdAndExerciseId(ex.getWorkoutEntry().getUser().getId(), ex.getExercise().getId()).map(PersonalRecord::getWeight).orElse(null);
+
         return SessionExerciseDto.builder()
             .workoutEntryExerciseId(ex.getId())
             .exerciseId(ex.getExercise().getId())
@@ -368,6 +476,7 @@ public class WorkoutSessionService {
             .previousSets(previousSets)
             .currentSets(current)
             .notes(ex.getNotes())
+            .currentPrWeight(currentPrWeight)
             .build();
     }
 

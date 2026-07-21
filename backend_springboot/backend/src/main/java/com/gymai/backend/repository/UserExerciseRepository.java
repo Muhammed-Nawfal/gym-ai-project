@@ -12,6 +12,8 @@ import com.gymai.backend.entity.UserExercise;
 public interface UserExerciseRepository extends JpaRepository<UserExercise, Long>{
     
     Optional<UserExercise> findByUserIdAndExerciseId(Long userId, Long exerciseId);
-    
+
     List<UserExercise> findByUserId(Long userId);
+
+    List<UserExercise> findByLastWorkoutEntryExercise_IdIn(List<Long> workoutEntryExerciseIds);
 }

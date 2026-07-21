@@ -16,12 +16,13 @@ public interface WorkoutEntryRepository extends JpaRepository<WorkoutEntry, Long
     List<WorkoutEntry> findByUserIdAndCompletedAt(Long userId, LocalDate completedAt);
     List<WorkoutEntry> findByUserId(Long userId);
     List<WorkoutEntry> findByUserIdOrderByStartedAtDesc(Long userId);
+    List<WorkoutEntry> findByUserIdAndCompletedAtIsNotNullAndCompletedAtAfterOrderByCompletedAtDesc(Long userId, LocalDateTime cutoff);
 
     Optional<WorkoutEntry> findFirstByUserIdAndCompletedAtIsNullOrderByStartedAtDesc(Long userId);
 
-    long deleteByCompletedAtIsNotNullAndCompletedAtBefore(LocalDateTime cutoff);
+    List<WorkoutEntry> findByCompletedAtIsNotNullAndCompletedAtBefore(LocalDateTime cutoff);
 
-    long deleteByCompletedAtIsNullAndStartedAtBefore(LocalDateTime cutoff);
+    List<WorkoutEntry> findByCompletedAtIsNullAndStartedAtBefore(LocalDateTime cutoff);
 
     long countByUser_IdAndCompletedAtIsNotNull(Long userId);
 } 

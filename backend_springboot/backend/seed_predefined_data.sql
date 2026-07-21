@@ -1,12 +1,6 @@
--- Seeds the predefined exercises + workouts (originally created locally) into Supabase.
--- Safe to run once against an empty exercise/workout/workout_exercise/workout_muscle_groups set.
--- Excludes 3 local test entries ("hi", "New ex" x2) that looked like accidental UI test data.
 
 BEGIN;
 
--- 10 predefined exercises. created_by is left NULL (system-owned) since the
--- local owner (user id 1, "testuser") doesn't correspond to any real
--- Supabase user, and created_by is nullable / ON DELETE SET NULL.
 INSERT INTO exercise (id, name, description, youtube_link, created_by, primary_muscle_group, secondary_muscle_group, tertiary_muscle_group) VALUES
 (1, 'Bench Press',      'Barbell bench press',      NULL, NULL, 'CHEST',     'TRICEP',    NULL),
 (2, 'Incline DB Press',  'Incline dumbbell press',   NULL, NULL, 'CHEST',     'SHOULDERS', NULL),

@@ -1,7 +1,18 @@
-import { BicepsFlexed, PlayCircle } from "lucide-react-native";
-import React from "react";
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BicepsFlexed } from "lucide-react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import YoutubePlayer from "react-native-youtube-iframe";
+import client from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import DialogBoxModal from "./DialogBoxModal";
+
+const VIDEO_WIDTH = Dimensions.get("window").width - 64;
+const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
+
+const getYoutubeVideoId = (url: string): string | null => {
+  const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/);
+  return match ? match[1] : null;
+};
 
 interface Exercise {
   id: number;
@@ -13,26 +24,66 @@ interface Exercise {
   tertiaryMuscleGroup?: string;
 }
 
+interface Workout {
+  id: number;
+  name: string;
+  isPredefined: boolean;
+}
+
 interface ExerciseModalProps {
   exercise: Exercise;
   onClose: () => void;
 }
 
-// The web version embedded the YouTube video directly via an <iframe>.
-// RN has no iframe/webview built in (embedding one would need the extra
-// react-native-webview package) - simplest equivalent here is a button that
-// opens the link in the phone's YouTube app or browser instead.
 const ExerciseModal: React.FC<ExerciseModalProps> = ({ exercise, onClose }) => {
+  const videoId = exercise.youtubeLink ? getYoutubeVideoId(exercise.youtubeLink) : null;
+  const { token, user } = useAuth();
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [loadingWorkouts, setLoadingWorkouts] = useState(false);
+  const [addingId, setAddingId] = useState<number | null>(null);
+  const [pickerError, setPickerError] = useState<string | null>(null);
+
+  const openPicker = async () => {
+    setPickerOpen(true);
+    setPickerError(null);
+    setLoadingWorkouts(true);
+    try {
+      const res = await client.get(`/api/workout/user/${user?.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWorkouts((res.data || []).filter((w: Workout) => !w.isPredefined));
+    } catch {
+      setPickerError("Failed to load your workouts.");
+    } finally {
+      setLoadingWorkouts(false);
+    }
+  };
+
+  const handleAddToWorkout = async (workoutId: number) => {
+    setAddingId(workoutId);
+    setPickerError(null);
+    try {
+      await client.post(
+        `/api/workouts/${workoutId}/exercises`,
+        { exerciseId: exercise.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPickerOpen(false);
+    } catch (err: any) {
+      setPickerError(err.response?.data?.error || "Could not add exercise. Please try again.");
+    } finally {
+      setAddingId(null);
+    }
+  };
+
   return (
     <DialogBoxModal open onClose={onClose} title={exercise.name} icon={<BicepsFlexed color="#d4af37" />}>
-      {exercise.youtubeLink && (
-        <TouchableOpacity
-          style={styles.videoButton}
-          onPress={() => Linking.openURL(exercise.youtubeLink!)}
-        >
-          <PlayCircle color="#d4af37" size={18} />
-          <Text style={styles.videoButtonText}>Watch Tutorial</Text>
-        </TouchableOpacity>
+      {videoId && (
+        <View style={styles.videoWrapper}>
+          <YoutubePlayer height={VIDEO_HEIGHT} width={VIDEO_WIDTH} videoId={videoId} />
+        </View>
       )}
 
       {exercise.description && (
@@ -56,30 +107,45 @@ const ExerciseModal: React.FC<ExerciseModalProps> = ({ exercise, onClose }) => {
         <TouchableOpacity style={styles.btnDanger} onPress={onClose}>
           <Text style={styles.btnDangerText}>Close</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btnPrimary}>
+        <TouchableOpacity style={styles.btnPrimary} onPress={openPicker}>
           <Text style={styles.btnPrimaryText}>+ Add to Workout</Text>
         </TouchableOpacity>
       </View>
+
+      {pickerOpen && (
+        <DialogBoxModal open onClose={() => setPickerOpen(false)} title="Add to which workout?">
+          {loadingWorkouts ? (
+            <ActivityIndicator color="#d4af37" style={{ marginVertical: 20 }} />
+          ) : (
+            <View>
+              {workouts.map((w) => (
+                <TouchableOpacity
+                  key={w.id}
+                  style={styles.workoutOption}
+                  disabled={addingId !== null}
+                  onPress={() => handleAddToWorkout(w.id)}
+                >
+                  <Text style={styles.workoutOptionText}>{w.name}</Text>
+                  {addingId === w.id && <ActivityIndicator color="#d4af37" size="small" />}
+                </TouchableOpacity>
+              ))}
+              {workouts.length === 0 && <Text style={styles.muted}>You don't have any workouts yet.</Text>}
+              {pickerError && <Text style={styles.errorText}>{pickerError}</Text>}
+            </View>
+          )}
+        </DialogBoxModal>
+      )}
     </DialogBoxModal>
   );
 };
 
 const styles = StyleSheet.create({
-  videoButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.3)",
+  videoWrapper: {
+    width: VIDEO_WIDTH,
+    height: VIDEO_HEIGHT,
     borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-    alignSelf: "flex-start",
-  },
-  videoButtonText: {
-    color: "#d4af37",
-    fontWeight: "500",
+    overflow: "hidden",
+    marginBottom: 16,
   },
   descriptionCard: {
     backgroundColor: "rgba(255,255,255,0.03)",
@@ -138,6 +204,25 @@ const styles = StyleSheet.create({
   btnDangerText: {
     color: "#ef4444",
     fontWeight: "600",
+  },
+  workoutOption: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 8,
+  },
+  workoutOptionText: {
+    color: "#e4e4e7",
+    fontWeight: "500",
+  },
+  errorText: {
+    color: "#ef4444",
+    marginTop: 8,
   },
 });
 

@@ -344,7 +344,7 @@ export default function LogWorkoutPanel({
       await AsyncStorage.removeItem(draftKey(working.workoutEntryId));
       onFinished();
     } catch {
-      setError("Discard failed (endpoint may not exist yet).");
+      setError("Failed to discard workout.");
     }
   };
 

@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import client from "../../api/client";
-import type { AddWorkoutToRoutineRequest, StartWorkoutRequest, StartWorkoutResponse } from "../../api/types";
 import CreateWorkoutModal from "../../components/CreateWorkoutModal";
 import LogWorkoutPanel from "../../components/LogWorkoutPanel";
 import SearchFilterBar from "../../components/SearchFilterBar";
@@ -11,6 +10,8 @@ import WorkoutAndExerciseCard from "../../components/WorkoutAndExerciseCard";
 import WorkoutDetailModal from "../../components/WorkoutDetailModal";
 import { useAuth } from "../../context/AuthContext";
 import { MuscleGroup } from "../../types/MuscleGroup";
+import { useFocusEffect, useRouter } from "expo-router";
+import type { AddWorkoutToRoutineRequest, StartWorkoutRequest, StartWorkoutResponse, WorkoutHistoryDto } from "../../api/types";
 
 interface Workout {
   id: number;
@@ -45,6 +46,9 @@ export default function WorkoutScreen() {
   const [logView, setLogView] = useState<"list" | "session">("list");
 
   const [showCreateWorkoutModal, setShowCreateWorkoutModal] = useState(false);
+
+  const router = useRouter();
+  const [history, setHistory] = useState<WorkoutHistoryDto[]>([]);
 
   const fetchUserWorkouts = async () => {
     if (!userId) return;
@@ -97,6 +101,19 @@ export default function WorkoutScreen() {
       return null;
     }
   };
+  
+
+  const fetchWorkoutHistory = async () => {
+    if (!userId) return;
+    try {
+      const res = await client.get<WorkoutHistoryDto[]>(`/api/workout-sessions/user/${userId}/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHistory(res.data || []);
+    } catch (err) {
+      console.error("Error fetching workout history:", err);
+    }
+  };
 
   useEffect(() => {
     if (activeTab !== "log" || !userId) return;
@@ -110,7 +127,17 @@ export default function WorkoutScreen() {
         setLogView("list");
       }
     });
+    fetchWorkoutHistory();
   }, [activeTab, userId, token]);
+
+  // Refetch history when returning to this screen (e.g. after deleting an
+  // entry from the history detail page) - the effect above only runs when
+  // activeTab/userId/token change, which doesn't cover navigating back.
+  useFocusEffect(
+    useCallback(() => {
+      if (activeTab === "log") fetchWorkoutHistory();
+    }, [activeTab, userId, token])
+  );
 
   const muscleOptions = [
     { value: MuscleGroup.CHEST, label: "Chest" },
@@ -224,6 +251,11 @@ export default function WorkoutScreen() {
       </SafeAreaView>
     );
   }
+
+  const formatHistoryDate = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.toLocaleDateString()} · ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  };
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -349,6 +381,29 @@ export default function WorkoutScreen() {
                 ))}
               </View>
             </View>
+
+            {history.length > 0 && (
+              <View>
+                <Text style={styles.h2}>Workout History</Text>
+                <View style={{ gap: 12 }}>
+                  {history.map((h) => (
+                    <WorkoutAndExerciseCard
+                      key={h.workoutEntryId}
+                      title={h.workoutName}
+                      description={formatHistoryDate(h.completedAt)}
+                      icon={<Dumbbell color="#d4af37" size={18} />}
+                      badges={[`${h.totalSets} sets`, `${Math.round(h.totalVolume)} kg volume`]}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/workout-history/[id]",
+                          params: { id: String(h.workoutEntryId), completedAt: h.completedAt },
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>

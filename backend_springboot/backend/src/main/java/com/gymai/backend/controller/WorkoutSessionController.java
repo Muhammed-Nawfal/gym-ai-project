@@ -1,5 +1,7 @@
 package com.gymai.backend.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import com.gymai.backend.dto.UpdateSetRequest;
 import com.gymai.backend.service.WorkoutSessionService;
 
 import lombok.RequiredArgsConstructor;
+import com.gymai.backend.dto.WorkoutHistoryDto;
 
 @RestController
 @RequestMapping("/api/workout-sessions")
@@ -81,6 +84,17 @@ public class WorkoutSessionController {
     @DeleteMapping("/{workoutEntryId}/discard")
     public ResponseEntity<Void> discardWorkoutSession(@PathVariable Long workoutEntryId) {
         workoutSessionService.discardWorkoutSession(workoutEntryId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/user/{userId}/history")
+    public ResponseEntity<List<WorkoutHistoryDto>> getWorkoutHistory(@PathVariable Long userId) {
+        return ResponseEntity.ok(workoutSessionService.getWorkoutHistoryForUser(userId));
+    }
+
+    @DeleteMapping("/{workoutEntryId}/history")
+    public ResponseEntity<Void> deleteWorkoutHistoryEntry(@PathVariable Long workoutEntryId) {
+        workoutSessionService.deleteWorkoutHistoryEntry(workoutEntryId);
         return ResponseEntity.noContent().build();
     }
 
