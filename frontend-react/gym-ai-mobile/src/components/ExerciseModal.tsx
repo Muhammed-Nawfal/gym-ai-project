@@ -5,6 +5,7 @@ import YoutubePlayer from "react-native-youtube-iframe";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import DialogBoxModal from "./DialogBoxModal";
+import { appColors, blackAlpha, whiteAlpha } from "../constants/appColors";
 
 const VIDEO_WIDTH = Dimensions.get("window").width - 64;
 const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
@@ -79,7 +80,7 @@ const ExerciseModal: React.FC<ExerciseModalProps> = ({ exercise, onClose }) => {
   };
 
   return (
-    <DialogBoxModal open onClose={onClose} title={exercise.name} icon={<BicepsFlexed color="#d4af37" />}>
+    <DialogBoxModal open onClose={onClose} title={exercise.name} icon={<BicepsFlexed color={appColors.gold} />}>
       {videoId && (
         <View style={styles.videoWrapper}>
           <YoutubePlayer height={VIDEO_HEIGHT} width={VIDEO_WIDTH} videoId={videoId} />
@@ -115,7 +116,7 @@ const ExerciseModal: React.FC<ExerciseModalProps> = ({ exercise, onClose }) => {
       {pickerOpen && (
         <DialogBoxModal open onClose={() => setPickerOpen(false)} title="Add to which workout?">
           {loadingWorkouts ? (
-            <ActivityIndicator color="#d4af37" style={{ marginVertical: 20 }} />
+            <ActivityIndicator color={appColors.gold} style={{ marginVertical: 20 }} />
           ) : (
             <View>
               {workouts.map((w) => (
@@ -126,7 +127,7 @@ const ExerciseModal: React.FC<ExerciseModalProps> = ({ exercise, onClose }) => {
                   onPress={() => handleAddToWorkout(w.id)}
                 >
                   <Text style={styles.workoutOptionText}>{w.name}</Text>
-                  {addingId === w.id && <ActivityIndicator color="#d4af37" size="small" />}
+                  {addingId === w.id && <ActivityIndicator color={appColors.gold} size="small" />}
                 </TouchableOpacity>
               ))}
               {workouts.length === 0 && <Text style={styles.muted}>You don't have any workouts yet.</Text>}
@@ -148,18 +149,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   descriptionCard: {
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: whiteAlpha(0.03),
     borderRadius: 8,
     padding: 14,
     marginBottom: 16,
   },
   descriptionTitle: {
-    color: "#ffffff",
+    color: appColors.white,
     fontWeight: "600",
     marginBottom: 6,
   },
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   badgeRow: {
     flexDirection: "row",
@@ -169,13 +170,13 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderColor: "#8a6d1f",
+    borderColor: appColors.goldDark,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   badgeText: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 12,
     fontWeight: "500",
   },
@@ -185,24 +186,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   btnPrimary: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnPrimaryText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   btnDanger: {
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnDangerText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
   },
   workoutOption: {
@@ -210,18 +211,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-    backgroundColor: "rgba(0,0,0,0.3)",
+    borderColor: whiteAlpha(0.1),
+    backgroundColor: blackAlpha(0.3),
     borderRadius: 10,
     padding: 14,
     marginBottom: 8,
   },
   workoutOptionText: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontWeight: "500",
   },
   errorText: {
-    color: "#ef4444",
+    color: appColors.danger,
     marginTop: 8,
   },
 });

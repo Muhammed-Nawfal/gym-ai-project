@@ -151,6 +151,24 @@ public class WorkoutSessionService {
         return toSessionExerciseDto(ex, previousSets, currentSets);
     }
 
+    // Removing an exercise from an in-progress session. Only valid before
+    // finish - a completed session's exercises may already be referenced by
+    // PersonalRecord/UserExercise, which finishWorkoutSession handles; this
+    // only ever runs pre-finish, so no such reference can exist yet.
+    // WorkoutEntryExercise.sets has cascade=ALL + orphanRemoval, so deleting
+    // the exercise cleans up its sets automatically.
+    @Transactional
+    public void removeExerciseFromSession(Long workoutEntryExerciseId) {
+        WorkoutEntryExercise ex = workoutEntryExerciseRepository.findById(workoutEntryExerciseId)
+            .orElseThrow(() -> new IllegalArgumentException("WorkoutEntryExercise not found with id: " + workoutEntryExerciseId));
+
+        if (ex.getWorkoutEntry().getCompletedAt() != null) {
+            throw new IllegalArgumentException("Cannot remove an exercise from a completed session");
+        }
+
+        workoutEntryExerciseRepository.delete(ex);
+    }
+
     //Adding an exercise while working out
     @Transactional
     public SessionExerciseDto addExerciseToSession(Long workoutEntryId, AddExerciseToSessionRequest req) {
@@ -291,12 +309,28 @@ public class WorkoutSessionService {
                 );
             }
 
-            if (!workoutExerciseRepository.existsByWorkoutIdAndExerciseId(workoutId, ex.getExercise().getId())) {
+            // The actual set count (not ex.getTargetSets(), which nothing
+            // mid-session ever updates - adding/deleting a set only changes
+            // the WorkoutEntrySet rows) is the real source of truth for what
+            // the user actually did in this session.
+            int actualSetCount = sets.size();
+
+            Optional<WorkoutExercise> existingTemplate =
+                workoutExerciseRepository.findByWorkoutIdAndExerciseId(workoutId, ex.getExercise().getId());
+
+            if (existingTemplate.isPresent()) {
+                WorkoutExercise templateEx = existingTemplate.get();
+                templateEx.setTargetSets(actualSetCount);
+                templateEx.setTargetReps(ex.getTargetReps());
+                templateEx.setTargetWeightKg(ex.getTargetWeightKg());
+                templateEx.setRestSeconds(ex.getRestSeconds());
+                workoutExerciseRepository.save(templateEx);
+            } else {
                 WorkoutExercise templateEx = new WorkoutExercise();
                 templateEx.setWorkout(workoutEntry.getWorkout());
                 templateEx.setExercise(ex.getExercise());
                 templateEx.setOrderIndex(nextOrderIndex++);
-                templateEx.setTargetSets(ex.getTargetSets());
+                templateEx.setTargetSets(actualSetCount);
                 templateEx.setTargetReps(ex.getTargetReps());
                 templateEx.setTargetWeightKg(ex.getTargetWeightKg());
                 templateEx.setRestSeconds(ex.getRestSeconds());

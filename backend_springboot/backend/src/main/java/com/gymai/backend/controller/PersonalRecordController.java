@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gymai.backend.dto.PersonalRecordDto;
 import com.gymai.backend.dto.PersonalRecordHistoryDto;
+import com.gymai.backend.dto.PersonalRecordStatsDto;
 import com.gymai.backend.service.PersonalRecordService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,10 @@ public class PersonalRecordController {
         @PathVariable Long userId, @PathVariable Long exerciseId
     ) {
         return ResponseEntity.ok(personalRecordService.getHistoryForExercise(userId, exerciseId));
+    }
+
+    @GetMapping("/user/{userId}/stats")
+    public ResponseEntity<PersonalRecordStatsDto> getStats(@PathVariable Long userId) {
+        return ResponseEntity.ok(personalRecordService.getStatsForUser(userId));
     }
 }

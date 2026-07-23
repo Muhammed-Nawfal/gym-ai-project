@@ -1,14 +1,15 @@
 package com.gymai.backend.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gymai.backend.dto.PersonalRecordDto;
 import com.gymai.backend.dto.PersonalRecordHistoryDto;
+import com.gymai.backend.dto.PersonalRecordStatsDto;
 import com.gymai.backend.entity.Exercise;
 import com.gymai.backend.entity.PersonalRecord;
 import com.gymai.backend.entity.PersonalRecordHistory;
@@ -112,6 +113,47 @@ public class PersonalRecordService {
                 personalRecordRepository.delete(record);
             }
         }
+    }
+
+    @Transactional
+    public PersonalRecordStatsDto getStatsForUser(Long userId){
+
+        List<PersonalRecord> allRecords = personalRecordRepository.findByUserIdOrderByWeightDesc(userId);
+
+        Double heaviestWeight = allRecords.isEmpty() ? null : allRecords.get(0).getWeight();
+        String heaviestExerciseName = allRecords.isEmpty() ? null : allRecords.get(0).getExercise().getName();
+
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay();
+        int totalThisMonth = (int) personalRecordHistoryRepository.countByUserIdAndAchievedAtBetween(userId, startOfMonth, LocalDateTime.now());
+
+        LocalDateTime startOfMonthForImprovement = LocalDateTime.now().minusMonths(3);
+        List<PersonalRecordHistory> history = personalRecordHistoryRepository.findByUserIdAndAchievedAtAfterOrderByExerciseIdAscAchievedAtAsc(userId, startOfMonthForImprovement);
+
+        Map<Long, List<PersonalRecordHistory>> byExercise = history.stream().collect(Collectors.groupingBy(h -> h.getExercise().getId()));
+
+        String mostImprovedExerciseName = null;
+        Double mostImprovedPercent = null;
+
+        for(List<PersonalRecordHistory> rows : byExercise.values()){
+            if(rows.size() < 2) continue;
+
+            double initialWeight = rows.get(0).getWeight();
+            double finalWeight = rows.get(rows.size() - 1).getWeight();
+            double improvementPercent = ((finalWeight - initialWeight) / initialWeight) * 100;
+
+            if(mostImprovedPercent == null || improvementPercent > mostImprovedPercent){
+                mostImprovedPercent = improvementPercent;
+                mostImprovedExerciseName = rows.get(0).getExercise().getName();
+            }
+        }
+
+        return new PersonalRecordStatsDto(
+            heaviestWeight,
+            heaviestExerciseName,
+            totalThisMonth,
+            mostImprovedExerciseName,
+            mostImprovedPercent
+        );
     }
 
     private PersonalRecordDto toDto(PersonalRecord record) {

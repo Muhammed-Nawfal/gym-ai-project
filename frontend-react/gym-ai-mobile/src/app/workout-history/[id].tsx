@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import client from "../../api/client";
 import type { StartWorkoutResponse } from "../../api/types";
 import { useAuth } from "../../context/AuthContext";
+import { appColors, dangerAlpha, goldAlpha, whiteAlpha } from "../../constants/appColors";
 
 const formatDuration = (ms: number) => {
   const totalMinutes = Math.max(1, Math.round(ms / 60000));
@@ -103,22 +104,22 @@ export default function WorkoutHistoryDetailScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <ChevronLeft color="rgba(255,255,255,0.8)" size={18} />
+            <ChevronLeft color={whiteAlpha(0.8)} size={18} />
           </TouchableOpacity>
           <Text style={styles.workoutName} numberOfLines={1}>
             {session?.workoutName ?? "Workout"}
           </Text>
           <TouchableOpacity style={styles.deleteButton} onPress={confirmDelete} disabled={deleting}>
             {deleting ? (
-              <ActivityIndicator color="#ef4444" size="small" />
+              <ActivityIndicator color={appColors.danger} size="small" />
             ) : (
-              <Trash2 color="#ef4444" size={18} />
+              <Trash2 color={appColors.danger} size={18} />
             )}
           </TouchableOpacity>
         </View>
 
         {loading ? (
-          <ActivityIndicator color="#d4af37" style={{ marginTop: 24 }} />
+          <ActivityIndicator color={appColors.gold} style={{ marginTop: 24 }} />
         ) : (
           <>
             {stats && (
@@ -145,7 +146,7 @@ export default function WorkoutHistoryDetailScreen() {
                 <View key={ex.workoutEntryExerciseId} style={styles.exerciseCard}>
                   <View style={styles.exerciseHeader}>
                     <View style={styles.exerciseIcon}>
-                      <Dumbbell color="#d4af37" size={16} />
+                      <Dumbbell color={appColors.gold} size={16} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.exerciseName}>{ex.exerciseName}</Text>
@@ -181,7 +182,7 @@ export default function WorkoutHistoryDetailScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
   },
   content: {
     padding: 16,
@@ -197,12 +198,12 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: whiteAlpha(0.1),
     alignItems: "center",
     justifyContent: "center",
   },
   workoutName: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 20,
     fontWeight: "600",
     flex: 1,
@@ -212,16 +213,16 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.3)",
+    borderColor: dangerAlpha(0.3),
     alignItems: "center",
     justifyContent: "center",
   },
   statsRow: {
     flexDirection: "row",
     alignItems: "stretch",
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 14,
     marginTop: 18,
     paddingVertical: 16,
@@ -233,25 +234,25 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: whiteAlpha(0.08),
   },
   statValue: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 19,
     fontWeight: "700",
   },
   statValueAccent: {
-    color: "#d4af37",
+    color: appColors.gold,
   },
   statLabel: {
-    color: "#71717a",
+    color: appColors.mutedDark,
     fontSize: 12,
   },
   exerciseCard: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     padding: 16,
   },
   exerciseHeader: {
@@ -264,17 +265,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "rgba(212, 175, 55, 0.1)",
+    backgroundColor: goldAlpha(0.1),
     alignItems: "center",
     justifyContent: "center",
   },
   exerciseName: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 16,
     fontWeight: "600",
   },
   exerciseSubtitle: {
-    color: "#71717a",
+    color: appColors.mutedDark,
     fontSize: 12,
     marginTop: 2,
   },
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: whiteAlpha(0.03),
     borderRadius: 8,
     paddingVertical: 9,
     paddingHorizontal: 12,
@@ -294,21 +295,21 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 6,
-    backgroundColor: "rgba(212, 175, 55, 0.12)",
+    backgroundColor: goldAlpha(0.12),
     alignItems: "center",
     justifyContent: "center",
   },
   setBadgeText: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 12,
     fontWeight: "700",
   },
   setText: {
-    color: "#71717a",
+    color: appColors.mutedDark,
     fontSize: 13,
   },
   setValue: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 14,
     fontWeight: "600",
   },

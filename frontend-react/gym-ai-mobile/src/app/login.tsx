@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { appColors, goldAlpha } from "../constants/appColors";
 
 export default function Login() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function Login() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor="#71717a"
+          placeholderTextColor={appColors.mutedDark}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -58,7 +59,7 @@ export default function Login() {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor="#71717a"
+          placeholderTextColor={appColors.mutedDark}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -83,7 +84,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -91,9 +92,9 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 360,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 12,
     padding: 32,
     alignItems: "center",
@@ -101,45 +102,45 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#ffffff",
+    color: appColors.white,
     marginBottom: 4,
   },
   subtitle: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     marginBottom: 24,
   },
   input: {
     width: "100%",
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: "#ffffff",
+    color: appColors.white,
     marginBottom: 12,
   },
   button: {
     width: "100%",
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",
     marginTop: 8,
   },
   buttonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   error: {
-    color: "#ef4444",
+    color: appColors.danger,
     marginTop: 12,
   },
   link: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     marginTop: 24,
     fontSize: 13,
   },
   linkAccent: {
-    color: "#d4af37",
+    color: appColors.gold,
   },
 });

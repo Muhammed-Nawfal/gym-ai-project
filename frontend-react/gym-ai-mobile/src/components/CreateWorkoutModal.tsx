@@ -8,6 +8,7 @@ import ChooseExercisesModal from "./ChooseExercisesModal";
 import DialogBoxModal from "./DialogBoxModal";
 import DropDownTextField from "./DropDownTextField";
 import TextField from "./TextField";
+import { appColors, whiteAlpha } from "../constants/appColors";
 
 type Exercise = {
   id: number;
@@ -208,7 +209,7 @@ const CreateWorkoutModal: React.FC<Props> = ({ mode, workoutId, onClose, onSaved
             <View style={styles.rowBetween}>
               <Text style={styles.subLabel}>Choose Your Exercises</Text>
               <TouchableOpacity style={styles.addExerciseButton} onPress={() => setChooseOpen(true)}>
-                <Plus color="#000000" size={14} />
+                <Plus color={appColors.black} size={14} />
                 <Text style={styles.addExerciseButtonText}>Add</Text>
               </TouchableOpacity>
             </View>
@@ -273,7 +274,7 @@ const CreateWorkoutModal: React.FC<Props> = ({ mode, workoutId, onClose, onSaved
 
 const styles = StyleSheet.create({
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   rowBetween: {
     flexDirection: "row",
@@ -281,25 +282,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   subLabel: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 15,
   },
   addExerciseButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   addExerciseButtonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
     fontSize: 12,
   },
   emptyCard: {
-    backgroundColor: "rgba(255,255,255,0.03)",
+    backgroundColor: whiteAlpha(0.03),
     borderRadius: 8,
     padding: 12,
     gap: 10,
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
+    borderBottomColor: whiteAlpha(0.1),
     paddingBottom: 8,
   },
   exerciseName: {
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   exerciseMuscle: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 12,
     marginTop: 2,
   },
@@ -331,28 +332,28 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   btnPrimary: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnPrimaryText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   btnDanger: {
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnDangerText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
   },
   error: {
-    color: "#ef4444",
+    color: appColors.danger,
   },
 });
 

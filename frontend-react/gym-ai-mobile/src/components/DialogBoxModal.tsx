@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { appColors, blackAlpha, goldAlpha } from "../constants/appColors";
 
 type DialogBoxModalProps = {
   open: boolean;
@@ -43,7 +44,7 @@ export default function DialogBoxModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: blackAlpha(0.6),
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
@@ -52,10 +53,10 @@ const styles = StyleSheet.create({
     width: "100%",
     maxHeight: "85%",
     flexShrink: 1,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
   },
   header: {
     flexDirection: "row",
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#d4af37",
+    color: appColors.gold,
   },
   body: {
     flexShrink: 1,

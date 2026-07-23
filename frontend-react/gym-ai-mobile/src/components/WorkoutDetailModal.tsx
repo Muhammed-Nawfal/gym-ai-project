@@ -5,6 +5,7 @@ import type { WorkoutDetail, WorkoutExercise } from "../api/types";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import DialogBoxModal from "./DialogBoxModal";
+import { appColors, blackAlpha, goldAlpha, whiteAlpha } from "../constants/appColors";
 
 type WorkoutDetailModalProps = {
   workoutId: number;
@@ -70,11 +71,11 @@ const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
       open={isOpen}
       onClose={onClose}
       title={workoutDetail ? workoutDetail.name : "Workout Details"}
-      icon={<Dumbbell color="#d4af37" />}
+      icon={<Dumbbell color={appColors.gold} />}
       headerActions={
         canEdit ? (
           <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteWorkout}>
-            <Trash2 color="#ef4444" size={16} />
+            <Trash2 color={appColors.danger} size={16} />
           </TouchableOpacity>
         ) : undefined
       }
@@ -159,21 +160,21 @@ const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
 
 const styles = StyleSheet.create({
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   deleteButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     alignItems: "center",
     justifyContent: "center",
   },
   statsRow: {
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.3)",
+    borderColor: goldAlpha(0.3),
     borderRadius: 12,
     paddingVertical: 12,
   },
@@ -182,22 +183,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statValue: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 22,
     fontWeight: "600",
   },
   statLabel: {
-    color: "rgba(255,255,255,0.6)",
+    color: whiteAlpha(0.6),
     fontSize: 12,
     marginTop: 4,
   },
   sectionLabel: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 15,
   },
   exerciseCard: {
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.3)",
+    borderColor: goldAlpha(0.3),
     borderRadius: 14,
     padding: 16,
   },
@@ -207,20 +208,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   exerciseName: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 16,
     fontWeight: "600",
     flex: 1,
   },
   muscleBadge: {
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.4)",
+    borderColor: goldAlpha(0.4),
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   muscleBadgeText: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 11,
     fontWeight: "500",
   },
@@ -231,16 +232,16 @@ const styles = StyleSheet.create({
   },
   exerciseStatBox: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: blackAlpha(0.4),
     borderRadius: 8,
     padding: 10,
   },
   exerciseStatLabel: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 11,
   },
   exerciseStatValue: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 16,
     fontWeight: "600",
     marginTop: 4,
@@ -252,39 +253,39 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   btnPrimary: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnPrimaryText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   btnSecondary: {
     borderWidth: 1,
-    borderColor: "#a1a1aa",
+    borderColor: appColors.muted,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnSecondaryText: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontWeight: "600",
   },
   btnDanger: {
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnDangerText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
   },
   error: {
-    color: "#ef4444",
+    color: appColors.danger,
     marginTop: 12,
   },
 });

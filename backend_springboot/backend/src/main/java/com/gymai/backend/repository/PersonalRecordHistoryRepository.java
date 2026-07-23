@@ -20,4 +20,8 @@ public interface PersonalRecordHistoryRepository extends JpaRepository<PersonalR
     Optional<PersonalRecordHistory> findFirstByUserIdAndExerciseIdOrderByWeightDesc(Long userId, Long exerciseId);
 
     void deleteByAchievedAtBefore(LocalDateTime cutoff);
+
+    long countByUserIdAndAchievedAtBetween(Long userId, LocalDateTime start, LocalDateTime end);
+    
+    List<PersonalRecordHistory> findByUserIdAndAchievedAtAfterOrderByExerciseIdAscAchievedAtAsc(Long userId, LocalDateTime cutoff);
 }

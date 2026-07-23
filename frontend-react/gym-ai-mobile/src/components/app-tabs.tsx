@@ -1,5 +1,6 @@
-import { BicepsFlexed, Dumbbell, House, User } from 'lucide-react-native';
+import { Dumbbell, House, Trophy, User } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
+import { appColors, goldAlpha } from "../constants/appColors";
 
 // Switched from the starter template's experimental NativeTabs (which needs
 // custom PNG icon assets per tab) to the standard JS-based Tabs component,
@@ -10,9 +11,9 @@ export default function AppTabs() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#d4af37',
-        tabBarInactiveTintColor: '#71717a',
-        tabBarStyle: { backgroundColor: '#000000', borderTopColor: 'rgba(212, 175, 55, 0.1)' },
+        tabBarActiveTintColor: appColors.gold,
+        tabBarInactiveTintColor: appColors.mutedDark,
+        tabBarStyle: { backgroundColor: appColors.black, borderTopColor: goldAlpha(0.1) },
       }}
     >
       <Tabs.Screen
@@ -30,10 +31,10 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="exercise"
+        name="personal-records"
         options={{
-          title: 'Exercises',
-          tabBarIcon: ({ color, size }) => <BicepsFlexed color={color} size={size} />,
+          title: 'Records',
+          tabBarIcon: ({ color, size }) => <Trophy color={color} size={size} />,
         }}
       />
       <Tabs.Screen

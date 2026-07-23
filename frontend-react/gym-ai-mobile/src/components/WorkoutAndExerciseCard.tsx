@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { appColors, goldAlpha } from "../constants/appColors";
 
 type WorkoutAndExerciseCardProps = {
   title: string;
@@ -41,10 +42,10 @@ const WorkoutAndExerciseCard: React.FC<WorkoutAndExerciseCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     padding: 16,
     gap: 8,
   },
@@ -54,12 +55,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   title: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 16,
     fontWeight: "600",
   },
   description: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 13,
   },
   badgeRow: {
@@ -70,13 +71,13 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderColor: "#8a6d1f",
+    borderColor: appColors.goldDark,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   badgeText: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 11,
   },
 });

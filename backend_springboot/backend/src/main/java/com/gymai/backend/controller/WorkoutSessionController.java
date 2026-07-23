@@ -81,6 +81,12 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(workoutSessionService.updateSessionExercise(workoutEntryExerciseId, request));
     }
 
+    @DeleteMapping("/exercises/{workoutEntryExerciseId}")
+    public ResponseEntity<Void> removeExerciseFromSession(@PathVariable Long workoutEntryExerciseId) {
+        workoutSessionService.removeExerciseFromSession(workoutEntryExerciseId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{workoutEntryId}/discard")
     public ResponseEntity<Void> discardWorkoutSession(@PathVariable Long workoutEntryId) {
         workoutSessionService.discardWorkoutSession(workoutEntryId);

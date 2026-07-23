@@ -6,6 +6,7 @@ import client from "../../api/client";
 import QuickActionItem from "../../components/QuickActionItem";
 import StatsCard from "../../components/StatsCard";
 import { useAuth } from "../../context/AuthContext";
+import { appColors, goldAlpha } from "../../constants/appColors";
 
 const goalLabels: Record<string, string> = {
   CUTTING: "Cutting",
@@ -45,12 +46,12 @@ export default function Home() {
         <StatsCard
           title="Total Workouts"
           value={<Text style={styles.gold}>{totalWorkouts}</Text>}
-          icon={<Zap color="#d4af37" size={26} />}
+          icon={<Zap color={appColors.gold} size={26} />}
         />
         <StatsCard
           title="This Week"
           value={<Text style={styles.gold}>0</Text>}
-          icon={<Calendar color="#d4af37" size={26} />}
+          icon={<Calendar color={appColors.gold} size={26} />}
         />
       </View>
       <View style={styles.statsGrid}>
@@ -61,12 +62,12 @@ export default function Home() {
               {(user?.userGoal && goalLabels[user.userGoal]) || user?.userGoal || "-"}
             </Text>
           }
-          icon={<Target color="#d4af37" size={26} />}
+          icon={<Target color={appColors.gold} size={26} />}
         />
         <StatsCard
           title="Streak"
           value={<Text style={styles.gold}>7 days</Text>}
-          icon={<TrendingUp color="#d4af37" size={26} />}
+          icon={<TrendingUp color={appColors.gold} size={26} />}
         />
       </View>
 
@@ -74,7 +75,7 @@ export default function Home() {
         <Text style={styles.h2}>Recent Workouts</Text>
         <View style={styles.emptyState}>
           <View style={styles.plusCircle}>
-            <Plus color="#a1a1aa" size={28} />
+            <Plus color={appColors.muted} size={28} />
           </View>
           <Text style={styles.emptyTitle}>Add a workout</Text>
           <Text style={styles.muted}>Start your fitness journey!</Text>
@@ -97,38 +98,38 @@ export default function Home() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
   },
   content: {
     padding: 20,
     gap: 16,
   },
   h1: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 22,
     fontWeight: "600",
   },
   h2: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 17,
     fontWeight: "600",
     marginBottom: 8,
   },
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   gold: {
-    color: "#d4af37",
+    color: appColors.gold,
   },
   statsGrid: {
     flexDirection: "row",
     gap: 12,
   },
   card: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     padding: 18,
   },
   emptyState: {
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptyTitle: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 16,
   },
 });

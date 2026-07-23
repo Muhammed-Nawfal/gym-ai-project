@@ -9,10 +9,13 @@ import {
   Plus,
   Save,
   Trash2,
+  Trophy,
   XCircle,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,6 +27,7 @@ import client from "../api/client";
 import type { SessionExerciseDto, SessionSetDto, StartWorkoutResponse } from "../api/types";
 import { useAuth } from "../context/AuthContext";
 import ChooseExercisesModal from "./ChooseExercisesModal";
+import { appColors, blackAlpha, dangerAlpha, goldAlpha, whiteAlpha } from "../constants/appColors";
 
 type LogWorkoutPanelProps = {
   session: StartWorkoutResponse;
@@ -95,6 +99,47 @@ export default function LogWorkoutPanel({
 
   const [chooseExerciseOpen, setChooseExerciseOpen] = useState(false);
 
+  // Baseline PR weight per exercise, seeded from the backend (the real,
+  // persisted PR) and bumped locally as new highs are hit mid-session - this
+  // is purely for the celebratory toast below, nothing here is written back
+  // to the server. The actual PR only gets persisted once the session
+  // finishes (see WorkoutSessionService.finishWorkoutSession).
+  const [runningPr, setRunningPr] = useState<Record<number, number>>(() => {
+    const init: Record<number, number> = {};
+    (session.exercises ?? []).forEach((ex: SessionExerciseDto) => {
+      if (ex.currentPrWeight != null) init[ex.workoutEntryExerciseId] = ex.currentPrWeight;
+    });
+    return init;
+  });
+
+  const [prToast, setPrToast] = useState<{ exerciseName: string; weight: number } | null>(null);
+  const toastAnim = useRef(new Animated.Value(0)).current;
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showPrToast = (exerciseName: string, weight: number) => {
+    setPrToast({ exerciseName, weight });
+
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+
+    toastAnim.setValue(0);
+    Animated.timing(toastAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+
+    toastTimeoutRef.current = setTimeout(() => {
+      Animated.timing(toastAnim, { toValue: 0, duration: 250, useNativeDriver: true }).start(() => {
+        setPrToast(null);
+      });
+    }, 2200);
+  };
+
+  const checkForPr = (workoutEntryExerciseId: number, exerciseName: string, weight: number | null) => {
+    if (weight == null) return;
+    const current = runningPr[workoutEntryExerciseId];
+    if (current == null || weight > current) {
+      setRunningPr((prev) => ({ ...prev, [workoutEntryExerciseId]: weight }));
+      showPrToast(exerciseName, weight);
+    }
+  };
+
   // Only re-sync from the prop when it's actually a different workout entry
   // (e.g. resuming a different session) - not on every parent re-render,
   // since `working` itself is what feeds the session back up to the parent
@@ -102,7 +147,19 @@ export default function LogWorkoutPanel({
   // change would fight with that and clobber in-progress local edits.
   useEffect(() => {
     setWorking(session);
+
+    const init: Record<number, number> = {};
+    (session.exercises ?? []).forEach((ex: SessionExerciseDto) => {
+      if (ex.currentPrWeight != null) init[ex.workoutEntryExerciseId] = ex.currentPrWeight;
+    });
+    setRunningPr(init);
   }, [session.workoutEntryId]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
 
   // Load any offline draft saved from a previous session on this device.
   useEffect(() => {
@@ -290,6 +347,33 @@ export default function LogWorkoutPanel({
     }
   };
 
+  const removeExercise = async (workoutEntryExerciseId: number) => {
+    setError(null);
+    try {
+      await client.delete(`/api/workout-sessions/exercises/${workoutEntryExerciseId}`, { headers: authHeaders });
+
+      setWorking((prev) => ({
+        ...prev,
+        exercises: (prev.exercises ?? []).filter(
+          (ex: SessionExerciseDto) => ex.workoutEntryExerciseId !== workoutEntryExerciseId
+        ),
+      }));
+    } catch {
+      setError("Failed to remove exercise.");
+    }
+  };
+
+  const confirmRemoveExercise = (workoutEntryExerciseId: number, exerciseName: string) => {
+    Alert.alert(
+      `Remove ${exerciseName}?`,
+      "This removes it from this session only - it won't affect the workout's saved template.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Remove", style: "destructive", onPress: () => removeExercise(workoutEntryExerciseId) },
+      ]
+    );
+  };
+
   const updateExercise = async (workoutEntryExId: number, patch: UpdateExercisePayload) => {
     setError(null);
     setSavingNotesIds((prev) => new Set(prev).add(workoutEntryExId));
@@ -395,10 +479,11 @@ export default function LogWorkoutPanel({
   }, [chooseExerciseOpen, existingIds]);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <View style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <ChevronLeft color="rgba(255,255,255,0.8)" size={18} />
+          <ChevronLeft color={whiteAlpha(0.8)} size={18} />
         </TouchableOpacity>
         <Text style={styles.workoutName} numberOfLines={1}>
           {working.workoutName ?? "Workout"}
@@ -407,11 +492,11 @@ export default function LogWorkoutPanel({
 
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.btnPrimary} onPress={finishWorkout}>
-          <CheckCircle2 color="#000000" size={16} />
+          <CheckCircle2 color={appColors.black} size={16} />
           <Text style={styles.btnPrimaryText}>Finish</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.btnDanger} onPress={discardWorkout}>
-          <XCircle color="#ef4444" size={16} />
+          <XCircle color={appColors.danger} size={16} />
           <Text style={styles.btnDangerText}>Discard</Text>
         </TouchableOpacity>
       </View>
@@ -460,14 +545,20 @@ export default function LogWorkoutPanel({
                 <View style={styles.exerciseHeaderRight}>
                   {typeof restForThisExercise === "number" && (
                     <View style={styles.restTimerBadge}>
-                      <Clock color="#d4af37" size={14} />
+                      <Clock color={appColors.gold} size={14} />
                       <Text style={styles.restTimerText}>{formatRest(restForThisExercise)}</Text>
                     </View>
                   )}
+                  <TouchableOpacity
+                    style={styles.removeExerciseButton}
+                    onPress={() => confirmRemoveExercise(ex.workoutEntryExerciseId, ex.exerciseName)}
+                  >
+                    <Trash2 color={dangerAlpha(0.7)} size={16} />
+                  </TouchableOpacity>
                   {isOpen ? (
-                    <ChevronUp color="rgba(255,255,255,0.6)" size={18} />
+                    <ChevronUp color={whiteAlpha(0.6)} size={18} />
                   ) : (
-                    <ChevronDown color="rgba(255,255,255,0.6)" size={18} />
+                    <ChevronDown color={whiteAlpha(0.6)} size={18} />
                   )}
                 </View>
               </TouchableOpacity>
@@ -485,7 +576,7 @@ export default function LogWorkoutPanel({
                             setRestDraftSeconds((p) => ({ ...p, [ex.workoutEntryExerciseId]: v }))
                           }
                           placeholder="seconds"
-                          placeholderTextColor="#71717a"
+                          placeholderTextColor={appColors.mutedDark}
                         />
                         <TouchableOpacity
                           style={styles.btnSecondarySmall}
@@ -513,7 +604,7 @@ export default function LogWorkoutPanel({
                           }));
                         }}
                       >
-                        <Clock color="rgba(255,255,255,0.8)" size={14} />
+                        <Clock color={whiteAlpha(0.8)} size={14} />
                         <Text style={styles.restDisplayText}>Rest: {formatRest(ex.restSeconds)}s</Text>
                       </TouchableOpacity>
                     )}
@@ -546,9 +637,12 @@ export default function LogWorkoutPanel({
                           keyboardType="numeric"
                           value={s.weight != null ? String(s.weight) : ""}
                           placeholder="kg"
-                          placeholderTextColor="#71717a"
+                          placeholderTextColor={appColors.mutedDark}
                           onChangeText={(v) => updateLocalSet(s.id, { weight: v === "" ? null : Number(v) })}
-                          onBlur={() => saveSetInBackend(s.id, { weight: s.weight ?? null })}
+                          onBlur={() => {
+                            saveSetInBackend(s.id, { weight: s.weight ?? null });
+                            if (s.completed) checkForPr(ex.workoutEntryExerciseId, ex.exerciseName, s.weight);
+                          }}
                         />
 
                         <TextInput
@@ -556,7 +650,7 @@ export default function LogWorkoutPanel({
                           keyboardType="numeric"
                           value={s.reps != null ? String(s.reps) : ""}
                           placeholder="reps"
-                          placeholderTextColor="#71717a"
+                          placeholderTextColor={appColors.mutedDark}
                           onChangeText={(v) => updateLocalSet(s.id, { reps: v === "" ? null : Number(v) })}
                           onBlur={() => saveSetInBackend(s.id, { reps: s.reps ?? null })}
                         />
@@ -570,23 +664,24 @@ export default function LogWorkoutPanel({
 
                             if (nextCompleted) {
                               startRestTimer(ex.workoutEntryExerciseId, Number(ex.restSeconds ?? 0));
+                              checkForPr(ex.workoutEntryExerciseId, ex.exerciseName, s.weight);
                             }
 
                             await saveSetInBackend(s.id, { completed: nextCompleted });
                           }}
                         >
-                          <Check color={s.completed ? "#d4af37" : "rgba(255,255,255,0.4)"} size={16} />
+                          <Check color={s.completed ? appColors.gold : whiteAlpha(0.4)} size={16} />
                         </TouchableOpacity>
 
                         <TouchableOpacity style={{ flex: 0.6, alignItems: "center" }} onPress={() => deleteSet(s.id)}>
-                          <Trash2 color="rgba(239,68,68,0.6)" size={16} />
+                          <Trash2 color={dangerAlpha(0.6)} size={16} />
                         </TouchableOpacity>
                       </View>
                     );
                   })}
 
                   <TouchableOpacity style={styles.addSetButton} onPress={() => addSet(ex.workoutEntryExerciseId)}>
-                    <Plus color="rgba(255,255,255,0.8)" size={14} />
+                    <Plus color={whiteAlpha(0.8)} size={14} />
                     <Text style={styles.addSetText}>Add Set</Text>
                   </TouchableOpacity>
 
@@ -598,7 +693,7 @@ export default function LogWorkoutPanel({
                         setNotesByEx((prev) => ({ ...prev, [ex.workoutEntryExerciseId]: v }))
                       }
                       placeholder="Notes..."
-                      placeholderTextColor="#71717a"
+                      placeholderTextColor={appColors.mutedDark}
                       multiline
                     />
                     <TouchableOpacity
@@ -606,7 +701,7 @@ export default function LogWorkoutPanel({
                       onPress={() => saveNotes(ex.workoutEntryExerciseId)}
                       disabled={savingNotesIds.has(ex.workoutEntryExerciseId)}
                     >
-                      <Save color="#e4e4e7" size={14} />
+                      <Save color={appColors.ink} size={14} />
                       <Text style={styles.btnSecondarySmallText}>
                         {savingNotesIds.has(ex.workoutEntryExerciseId) ? "Saving..." : "Save"}
                       </Text>
@@ -620,7 +715,7 @@ export default function LogWorkoutPanel({
       </View>
 
       <TouchableOpacity style={styles.addExerciseButton} onPress={() => setChooseExerciseOpen(true)}>
-        <Plus color="#000000" size={16} />
+        <Plus color={appColors.black} size={16} />
         <Text style={styles.btnPrimaryText}>Add Exercise</Text>
       </TouchableOpacity>
 
@@ -646,6 +741,26 @@ export default function LogWorkoutPanel({
         />
       )}
     </ScrollView>
+
+    {prToast && (
+      <Animated.View
+        style={[
+          styles.prToast,
+          {
+            opacity: toastAnim,
+            transform: [
+              { translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) },
+            ],
+          },
+        ]}
+      >
+        <Trophy color={appColors.black} size={18} />
+        <Text style={styles.prToastText}>
+          New PR! {prToast.exerciseName} — {prToast.weight}kg
+        </Text>
+      </Animated.View>
+    )}
+    </View>
   );
 }
 
@@ -657,6 +772,24 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
+  prToast: {
+    position: "absolute",
+    top: 12,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: appColors.gold,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  prToastText: {
+    color: appColors.black,
+    fontWeight: "600",
+    flexShrink: 1,
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -667,12 +800,12 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: whiteAlpha(0.1),
     alignItems: "center",
     justifyContent: "center",
   },
   workoutName: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 20,
     fontWeight: "600",
     flexShrink: 1,
@@ -687,13 +820,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 8,
     paddingVertical: 10,
     flex: 1,
   },
   btnPrimaryText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   btnDanger: {
@@ -702,19 +835,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 8,
     paddingVertical: 10,
     flex: 1,
   },
   btnDangerText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
   },
   totalsRow: {
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: whiteAlpha(0.1),
     borderRadius: 12,
     marginTop: 16,
     paddingVertical: 12,
@@ -724,12 +857,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   totalValue: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 20,
     fontWeight: "600",
   },
   totalLabel: {
-    color: "rgba(255,255,255,0.6)",
+    color: whiteAlpha(0.6),
     fontSize: 11,
     marginTop: 4,
     textAlign: "center",
@@ -737,8 +870,8 @@ const styles = StyleSheet.create({
   errorBox: {
     marginTop: 16,
     borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.3)",
-    backgroundColor: "rgba(239,68,68,0.1)",
+    borderColor: dangerAlpha(0.3),
+    backgroundColor: dangerAlpha(0.1),
     borderRadius: 10,
     padding: 12,
   },
@@ -748,7 +881,7 @@ const styles = StyleSheet.create({
   },
   exerciseBlock: {
     borderLeftWidth: 2,
-    borderLeftColor: "rgba(255,255,255,0.2)",
+    borderLeftColor: whiteAlpha(0.2),
   },
   exerciseHeader: {
     flexDirection: "row",
@@ -758,12 +891,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   exerciseName: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 16,
     fontWeight: "600",
   },
   exerciseProgress: {
-    color: "rgba(255,255,255,0.6)",
+    color: whiteAlpha(0.6),
     fontSize: 12,
     marginTop: 4,
   },
@@ -772,13 +905,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
+  removeExerciseButton: {
+    padding: 4,
+  },
   restTimerBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
   },
   restTimerText: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 13,
     fontWeight: "600",
   },
@@ -797,20 +933,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: whiteAlpha(0.1),
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   restDisplayText: {
-    color: "rgba(255,255,255,0.8)",
+    color: whiteAlpha(0.8),
     fontSize: 13,
   },
   restInput: {
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: whiteAlpha(0.15),
     borderRadius: 8,
-    color: "#ffffff",
+    color: appColors.white,
     paddingHorizontal: 10,
     paddingVertical: 8,
     width: 90,
@@ -820,17 +956,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: whiteAlpha(0.2),
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   btnSecondarySmallText: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 13,
   },
   cancelLink: {
-    color: "rgba(255,255,255,0.6)",
+    color: whiteAlpha(0.6),
     fontSize: 13,
   },
   tableHeader: {
@@ -838,34 +974,34 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tableHeaderCell: {
-    color: "rgba(255,255,255,0.5)",
+    color: whiteAlpha(0.5),
     fontSize: 11,
     textAlign: "center",
   },
   setRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.25)",
+    backgroundColor: blackAlpha(0.25),
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 4,
     gap: 4,
   },
   setCell: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 13,
     fontWeight: "600",
     textAlign: "center",
   },
   setCellMuted: {
-    color: "rgba(255,255,255,0.5)",
+    color: whiteAlpha(0.5),
     fontSize: 12,
     textAlign: "center",
   },
   setInput: {
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: blackAlpha(0.4),
     borderRadius: 6,
-    color: "#ffffff",
+    color: appColors.white,
     textAlign: "center",
     paddingVertical: 6,
   },
@@ -873,13 +1009,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: whiteAlpha(0.1),
     borderRadius: 8,
     paddingVertical: 8,
   },
   doneButtonActive: {
-    borderColor: "#d4af37",
-    backgroundColor: "rgba(212, 175, 55, 0.15)",
+    borderColor: appColors.gold,
+    backgroundColor: goldAlpha(0.15),
   },
   addSetButton: {
     flexDirection: "row",
@@ -888,7 +1024,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   addSetText: {
-    color: "rgba(255,255,255,0.8)",
+    color: whiteAlpha(0.8),
     fontSize: 13,
   },
   notesRow: {
@@ -900,9 +1036,9 @@ const styles = StyleSheet.create({
   notesInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: whiteAlpha(0.15),
     borderRadius: 10,
-    color: "#e4e4e7",
+    color: appColors.ink,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 13,
@@ -913,7 +1049,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 8,
     paddingVertical: 12,
     marginTop: 20,

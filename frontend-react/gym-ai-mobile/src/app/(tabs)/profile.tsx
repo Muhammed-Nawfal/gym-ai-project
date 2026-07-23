@@ -10,6 +10,7 @@ import TextField from "../../components/TextField";
 import { useAuth } from "../../context/AuthContext";
 import { Goal } from "../../types/Goal";
 import { SkillLevel } from "../../types/SkillLevel";
+import { appColors, goldAlpha } from "../../constants/appColors";
 
 export default function Profile() {
   const router = useRouter();
@@ -128,7 +129,7 @@ export default function Profile() {
           <Text style={styles.muted}>Manage your personal info and fitness goals</Text>
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <LogOut color="#a1a1aa" size={16} />
+          <LogOut color={appColors.muted} size={16} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
@@ -165,7 +166,7 @@ export default function Profile() {
         </View>
 
         <View style={styles.joinedRow}>
-          <Calendar color="#a1a1aa" size={14} />
+          <Calendar color={appColors.muted} size={14} />
           <Text style={styles.muted}>
             Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
           </Text>
@@ -175,23 +176,23 @@ export default function Profile() {
       <View style={styles.infoCard}>
         <View style={styles.infoHeaderRow}>
           <View style={styles.infoHeaderTitle}>
-            <UserIcon color="#d4af37" size={16} />
+            <UserIcon color={appColors.gold} size={16} />
             <Text style={styles.infoHeaderText}>Personal Information</Text>
           </View>
 
           {!isEditing ? (
             <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
-              <Edit2 color="#000000" size={13} />
+              <Edit2 color={appColors.black} size={13} />
               <Text style={styles.editButtonText}>Edit</Text>
             </TouchableOpacity>
           ) : (
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity style={styles.editButton} onPress={handleSave}>
-                <Save color="#000000" size={13} />
+                <Save color={appColors.black} size={13} />
                 <Text style={styles.editButtonText}>Save</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                <X color="#ef4444" size={13} />
+                <X color={appColors.danger} size={13} />
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -275,7 +276,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
   },
   content: {
     padding: 20,
@@ -287,12 +288,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   h1: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 22,
     fontWeight: "600",
   },
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   logoutButton: {
     flexDirection: "row",
@@ -300,14 +301,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   logoutText: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 13,
   },
   avatarCard: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     padding: 24,
     alignItems: "center",
   },
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "rgba(212, 175, 55, 0.3)",
+    borderColor: goldAlpha(0.3),
     marginBottom: 12,
   },
   avatarImage: {
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(212, 175, 55, 0.4)",
+    backgroundColor: goldAlpha(0.4),
   },
   avatarInitialsText: {
     fontSize: 28,
@@ -337,31 +338,31 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
   },
   uploadButton: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginBottom: 12,
   },
   uploadButtonText: {
-    color: "#000000",
+    color: appColors.black,
     fontSize: 12,
     fontWeight: "600",
   },
   name: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 18,
     fontWeight: "600",
   },
   skillBadge: {
     marginTop: 12,
-    backgroundColor: "rgba(212, 175, 55, 0.2)",
+    backgroundColor: goldAlpha(0.2),
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   skillBadgeText: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -372,10 +373,10 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   infoCard: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     padding: 20,
     gap: 16,
   },
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   infoHeaderText: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 16,
     fontWeight: "600",
   },
@@ -398,13 +399,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   editButtonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
     fontSize: 12,
   },
@@ -413,13 +414,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   cancelButtonText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
     fontSize: 12,
   },

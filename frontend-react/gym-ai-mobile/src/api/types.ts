@@ -61,6 +61,7 @@ export interface SessionExerciseDto {
   notes?: string | null;
   previousSets: PreviousSetDto[];
   currentSets: SessionSetDto[];
+  currentPrWeight?: number | null;
 }
 
 export interface StartWorkoutResponse {
@@ -87,6 +88,34 @@ export interface WorkoutHistoryDto {
   completedAt: string;
   totalSets: number;
   totalVolume: number;
+}
+
+export interface PersonalRecordDto {
+  exerciseId: number;
+  exerciseName: string;
+  weight: number;
+  reps: number;
+  volume: number;
+  achievedAt: string;
+  workoutName: string | null;
+  workoutEntryId: number | null;
+}
+
+export interface PersonalRecordStatsDto {
+  heaviestWeight: number | null;
+  heaviestExerciseName: string | null;
+  totalThisMonth: number;
+  mostImprovedExerciseName: string | null;
+  mostImprovedPercent: number | null;
+}
+
+export interface PersonalRecordHistoryDto {
+  weight: number;
+  reps: number;
+  volume: number;
+  achievedAt: string;
+  workoutName: string | null;
+  workoutEntryId: number | null;
 }
 
 
