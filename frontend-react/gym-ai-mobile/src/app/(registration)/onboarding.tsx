@@ -18,6 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useRegistration } from "../../context/RegistrationContext";
 import { Goal } from "../../types/Goal";
 import { SkillLevel } from "../../types/SkillLevel";
+import { appColors, goldAlpha } from "../../constants/appColors";
 
 export default function OnBoarding() {
   const router = useRouter();
@@ -141,7 +142,7 @@ export default function OnBoarding() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
-        <Dumbbell color="#d4af37" size={40} style={{ alignSelf: "center" }} />
+        <Dumbbell color={appColors.gold} size={40} style={{ alignSelf: "center" }} />
         <Text style={styles.title}>Your Gym Journey Starts Here</Text>
         <Text style={styles.subtitle}>
           Complete your profile to get personalized workout plans and track your progress
@@ -219,11 +220,11 @@ export default function OnBoarding() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
   },
   container: {
     flexGrow: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -231,9 +232,9 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 480,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 12,
     padding: 28,
     gap: 12,
@@ -241,11 +242,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#d4af37",
+    color: appColors.gold,
     textAlign: "center",
   },
   subtitle: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     textAlign: "center",
     marginBottom: 8,
   },
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: "rgba(212, 175, 55, 0.3)",
+    borderColor: goldAlpha(0.3),
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -267,13 +268,13 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   imagePickerText: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 12,
     textAlign: "center",
     paddingHorizontal: 8,
   },
   button: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",
@@ -283,11 +284,11 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   error: {
-    color: "#ef4444",
+    color: appColors.danger,
     textAlign: "center",
   },
 });

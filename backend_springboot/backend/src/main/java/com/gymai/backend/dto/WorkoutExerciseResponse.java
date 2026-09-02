@@ -12,7 +12,7 @@ public class WorkoutExerciseResponse {
     private String exerciseName;
 
     private Integer targetSets;
-    private double targetWeightKg;
+    private Integer targetWeightKg;
     private Integer targetReps;
     private Integer restSeconds;
     private Integer orderIndex;

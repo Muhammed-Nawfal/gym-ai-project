@@ -2,6 +2,7 @@ import { Search } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import DropDownTextField from "./DropDownTextField";
+import { appColors, blackAlpha, goldAlpha } from "../constants/appColors";
 
 interface FilterOption {
   category: string;
@@ -29,11 +30,11 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.searchRow}>
-        <Search size={18} color="#a1a1aa" />
+        <Search size={18} color={appColors.muted} />
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor="#71717a"
+          placeholderTextColor={appColors.mutedDark}
           value={search}
           onChangeText={onSearchChange}
         />
@@ -58,10 +59,10 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.15)",
+    borderColor: goldAlpha(0.15),
     borderRadius: 12,
     padding: 16,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: blackAlpha(0.5),
     gap: 12,
     marginBottom: 24,
   },
@@ -70,14 +71,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   input: {
     flex: 1,
-    color: "#ffffff",
+    color: appColors.white,
   },
   filterRow: {
     width: "100%",

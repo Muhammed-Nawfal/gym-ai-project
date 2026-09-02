@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import client from "../../api/client";
 import TextField from "../../components/TextField";
 import { useRegistration } from "../../context/RegistrationContext";
+import { appColors, goldAlpha } from "../../constants/appColors";
 
 export default function Register() {
   const router = useRouter();
@@ -165,11 +166,11 @@ export default function Register() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
   },
   container: {
     flexGrow: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -177,9 +178,9 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 12,
     padding: 32,
     gap: 12,
@@ -188,10 +189,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#ffffff",
+    color: appColors.white,
   },
   subtitle: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     marginBottom: 12,
   },
   row: {
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",
@@ -214,18 +215,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   error: {
-    color: "#ef4444",
+    color: appColors.danger,
   },
   link: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     marginTop: 12,
     fontSize: 13,
   },
   linkAccent: {
-    color: "#d4af37",
+    color: appColors.gold,
   },
 });

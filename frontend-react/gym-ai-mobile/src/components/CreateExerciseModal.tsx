@@ -6,6 +6,7 @@ import { MuscleGroup } from "../types/MuscleGroup";
 import DialogBoxModal from "./DialogBoxModal";
 import DropDownTextField from "./DropDownTextField";
 import TextField from "./TextField";
+import { appColors } from "../constants/appColors";
 
 interface CreateExerciseModalProps {
   onClose: () => void;
@@ -135,7 +136,7 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
 
 const styles = StyleSheet.create({
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   buttonRow: {
     flexDirection: "row",
@@ -144,28 +145,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   btnPrimary: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnPrimaryText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   btnDanger: {
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnDangerText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
   },
   error: {
-    color: "#ef4444",
+    color: appColors.danger,
     marginTop: 8,
   },
 });

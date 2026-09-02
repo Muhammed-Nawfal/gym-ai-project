@@ -1,6 +1,7 @@
 import { Check, ChevronDown } from "lucide-react-native";
 import React, { useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { appColors, blackAlpha, goldAlpha, whiteAlpha } from "../constants/appColors";
 
 interface DropDownTextFieldOption {
   value: string;
@@ -82,7 +83,7 @@ const DropDownTextField: React.FC<DropDownTextFieldProps> = ({
         <Text style={styles.triggerText} numberOfLines={1}>
           {displayText}
         </Text>
-        <ChevronDown size={16} color="#a1a1aa" />
+        <ChevronDown size={16} color={appColors.muted} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -94,7 +95,7 @@ const DropDownTextField: React.FC<DropDownTextFieldProps> = ({
               renderItem={({ item }) => (
                 <Pressable style={styles.option} onPress={() => handleSelect(item.value)}>
                   <Text style={styles.optionText}>{item.label}</Text>
-                  {isSelected(item.value) && <Check size={16} color="#d4af37" />}
+                  {isSelected(item.value) && <Check size={16} color={appColors.gold} />}
                 </Pressable>
               )}
             />
@@ -116,25 +117,25 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: "#e4e4e7",
+    color: appColors.ink,
   },
   trigger: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   triggerText: {
-    color: "#ffffff",
+    color: appColors.white,
     flex: 1,
   },
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: blackAlpha(0.6),
     justifyContent: "flex-end",
   },
   sheet: {
@@ -151,22 +152,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+    borderBottomColor: whiteAlpha(0.05),
   },
   optionText: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 15,
   },
   doneButton: {
     marginTop: 8,
     marginHorizontal: 20,
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",
   },
   doneButtonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
 });

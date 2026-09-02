@@ -1,16 +1,20 @@
-import { Dumbbell, PlayCircle, Plus } from "lucide-react-native";
+import { BicepsFlexed, Dumbbell, PlayCircle, Plus } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import client from "../../api/client";
-import type { AddWorkoutToRoutineRequest, StartWorkoutRequest, StartWorkoutResponse } from "../../api/types";
+import CreateExerciseModal from "../../components/CreateExerciseModal";
 import CreateWorkoutModal from "../../components/CreateWorkoutModal";
+import ExerciseModal from "../../components/ExerciseModal";
 import LogWorkoutPanel from "../../components/LogWorkoutPanel";
 import SearchFilterBar from "../../components/SearchFilterBar";
 import WorkoutAndExerciseCard from "../../components/WorkoutAndExerciseCard";
 import WorkoutDetailModal from "../../components/WorkoutDetailModal";
 import { useAuth } from "../../context/AuthContext";
 import { MuscleGroup } from "../../types/MuscleGroup";
+import { useFocusEffect, useRouter } from "expo-router";
+import type { AddWorkoutToRoutineRequest, StartWorkoutRequest, StartWorkoutResponse, WorkoutHistoryDto } from "../../api/types";
+import { appColors, goldAlpha, whiteAlpha } from "../../constants/appColors";
 
 interface Workout {
   id: number;
@@ -20,11 +24,21 @@ interface Workout {
   muscleGroups: MuscleGroup[];
 }
 
+interface Exercise {
+  id: number;
+  name: string;
+  description: string;
+  youtubeLink?: string;
+  primaryMuscleGroup: string;
+  secondaryMuscleGroup?: string;
+  tertiaryMuscleGroup?: string;
+}
+
 export default function WorkoutScreen() {
   const { token, user } = useAuth();
   const userId = user ? user.id : null;
 
-  const [activeTab, setActiveTab] = useState<"workouts" | "log">("workouts");
+  const [activeTab, setActiveTab] = useState<"workouts" | "log" | "exercises">("workouts");
 
   const [userWorkouts, setUserWorkouts] = useState<Workout[]>([]);
   const [predefinedWorkouts, setPredefinedWorkouts] = useState<Workout[]>([]);
@@ -45,6 +59,30 @@ export default function WorkoutScreen() {
   const [logView, setLogView] = useState<"list" | "session">("list");
 
   const [showCreateWorkoutModal, setShowCreateWorkoutModal] = useState(false);
+
+  const router = useRouter();
+  const [history, setHistory] = useState<WorkoutHistoryDto[]>([]);
+
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [exerciseSearch, setExerciseSearch] = useState("");
+  const [exerciseFilters, setExerciseFilters] = useState({ muscleGroup: "all" });
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+
+  const fetchExercises = async () => {
+    try {
+      const res = await client.get("/api/exercise", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setExercises(res.data || []);
+    } catch (err) {
+      console.error("Error fetching exercises:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchExercises();
+  }, []);
 
   const fetchUserWorkouts = async () => {
     if (!userId) return;
@@ -97,6 +135,19 @@ export default function WorkoutScreen() {
       return null;
     }
   };
+  
+
+  const fetchWorkoutHistory = async () => {
+    if (!userId) return;
+    try {
+      const res = await client.get<WorkoutHistoryDto[]>(`/api/workout-sessions/user/${userId}/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHistory(res.data || []);
+    } catch (err) {
+      console.error("Error fetching workout history:", err);
+    }
+  };
 
   useEffect(() => {
     if (activeTab !== "log" || !userId) return;
@@ -110,7 +161,17 @@ export default function WorkoutScreen() {
         setLogView("list");
       }
     });
+    fetchWorkoutHistory();
   }, [activeTab, userId, token]);
+
+  // Refetch history when returning to this screen (e.g. after deleting an
+  // entry from the history detail page) - the effect above only runs when
+  // activeTab/userId/token change, which doesn't cover navigating back.
+  useFocusEffect(
+    useCallback(() => {
+      if (activeTab === "log") fetchWorkoutHistory();
+    }, [activeTab, userId, token])
+  );
 
   const muscleOptions = [
     { value: MuscleGroup.CHEST, label: "Chest" },
@@ -152,6 +213,32 @@ export default function WorkoutScreen() {
 
   const filteredMyWorkouts = useMemo(() => myWorkouts.filter(matchesFilters), [myWorkouts, search, filters]);
   const filteredAllPredefined = useMemo(() => allPredefined.filter(matchesFilters), [allPredefined, search, filters]);
+
+  const exerciseFilterOptions = [
+    {
+      category: "muscleGroup",
+      label: "Muscle Group",
+      options: [{ value: "all", label: "All Groups" }, ...muscleOptions],
+    },
+  ];
+
+  const filteredExercises = useMemo(() => {
+    return exercises.filter((ex) => {
+      const matchesSearch =
+        ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+        ex.primaryMuscleGroup.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+        ex.secondaryMuscleGroup?.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+        ex.tertiaryMuscleGroup?.toLowerCase().includes(exerciseSearch.toLowerCase());
+
+      const matchesMuscle =
+        exerciseFilters.muscleGroup === "all" ||
+        ex.primaryMuscleGroup.includes(exerciseFilters.muscleGroup) ||
+        ex.secondaryMuscleGroup?.includes(exerciseFilters.muscleGroup) ||
+        ex.tertiaryMuscleGroup?.includes(exerciseFilters.muscleGroup);
+
+      return matchesSearch && matchesMuscle;
+    });
+  }, [exercises, exerciseSearch, exerciseFilters]);
 
   const handleStartWorkout = async (workoutId: number) => {
     if (!userId) return;
@@ -225,14 +312,24 @@ export default function WorkoutScreen() {
     );
   }
 
+  const formatHistoryDate = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.toLocaleDateString()} · ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  };
+
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <Text style={styles.h1}>Workouts</Text>
-          <TouchableOpacity style={styles.addButton} onPress={() => setShowCreateWorkoutModal(true)}>
-            <Plus color="#000000" size={16} />
-            <Text style={styles.addButtonText}>Add</Text>
+          <Text style={styles.h1}>{activeTab === "exercises" ? "Exercises" : "Workouts"}</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() =>
+              activeTab === "exercises" ? setShowCreateExerciseModal(true) : setShowCreateWorkoutModal(true)
+            }
+          >
+            <Plus color={appColors.black} size={16} />
+            <Text style={styles.addButtonText}>{activeTab === "exercises" ? "Create" : "Add"}</Text>
           </TouchableOpacity>
         </View>
 
@@ -241,7 +338,7 @@ export default function WorkoutScreen() {
             style={[styles.tabButton, activeTab === "workouts" && styles.tabButtonActive]}
             onPress={() => setActiveTab("workouts")}
           >
-            <Dumbbell color={activeTab === "workouts" ? "#d4af37" : "#a1a1aa"} size={16} />
+            <Dumbbell color={activeTab === "workouts" ? appColors.gold : appColors.muted} size={16} />
             <Text style={[styles.tabButtonText, activeTab === "workouts" && styles.tabButtonTextActive]}>
               Workouts
             </Text>
@@ -251,9 +348,19 @@ export default function WorkoutScreen() {
             style={[styles.tabButton, activeTab === "log" && styles.tabButtonActive]}
             onPress={() => setActiveTab("log")}
           >
-            <PlayCircle color={activeTab === "log" ? "#d4af37" : "#a1a1aa"} size={16} />
+            <PlayCircle color={activeTab === "log" ? appColors.gold : appColors.muted} size={16} />
             <Text style={[styles.tabButtonText, activeTab === "log" && styles.tabButtonTextActive]}>
               Log Workouts
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === "exercises" && styles.tabButtonActive]}
+            onPress={() => setActiveTab("exercises")}
+          >
+            <BicepsFlexed color={activeTab === "exercises" ? appColors.gold : appColors.muted} size={16} />
+            <Text style={[styles.tabButtonText, activeTab === "exercises" && styles.tabButtonTextActive]}>
+              Exercises
             </Text>
           </TouchableOpacity>
         </View>
@@ -281,7 +388,7 @@ export default function WorkoutScreen() {
                         key={w.id}
                         title={w.name}
                         description={w.description}
-                        icon={<Dumbbell color="#d4af37" size={18} />}
+                        icon={<Dumbbell color={appColors.gold} size={18} />}
                         badges={(w.muscleGroups || []).map((mg) => String(mg))}
                         onPress={() => handleWorkoutClick(w)}
                       />
@@ -302,7 +409,7 @@ export default function WorkoutScreen() {
                       key={w.id}
                       title={w.name}
                       description={w.description}
-                      icon={<Dumbbell color="#d4af37" size={18} />}
+                      icon={<Dumbbell color={appColors.gold} size={18} />}
                       badges={(w.muscleGroups || []).map((mg: MuscleGroup) => String(mg))}
                       onPress={() => handleWorkoutClick(w)}
                     />
@@ -335,7 +442,7 @@ export default function WorkoutScreen() {
                     key={w.id}
                     title={w.name}
                     description={w.description}
-                    icon={<Dumbbell color="#d4af37" size={18} />}
+                    icon={<Dumbbell color={appColors.gold} size={18} />}
                     badges={(w.muscleGroups || []).map((mg: MuscleGroup) => String(mg))}
                     onPress={() => {
                       if (activeSession?.workoutEntryId) {
@@ -348,6 +455,57 @@ export default function WorkoutScreen() {
                   />
                 ))}
               </View>
+            </View>
+
+            {history.length > 0 && (
+              <View>
+                <Text style={styles.h2}>Workout History</Text>
+                <View style={{ gap: 12 }}>
+                  {history.map((h) => (
+                    <WorkoutAndExerciseCard
+                      key={h.workoutEntryId}
+                      title={h.workoutName}
+                      description={formatHistoryDate(h.completedAt)}
+                      icon={<Dumbbell color={appColors.gold} size={18} />}
+                      badges={[`${h.totalSets} sets`, `${Math.round(h.totalVolume)} kg volume`]}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/workout-history/[id]",
+                          params: { id: String(h.workoutEntryId), completedAt: h.completedAt },
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
+        {activeTab === "exercises" && (
+          <View style={{ gap: 24 }}>
+            <SearchFilterBar
+              placeholder="Search exercises..."
+              search={exerciseSearch}
+              onSearchChange={setExerciseSearch}
+              filters={exerciseFilters}
+              onFilterChange={(category, value) => setExerciseFilters((prev) => ({ ...prev, [category]: value }))}
+              filterOptions={exerciseFilterOptions}
+            />
+
+            <View style={{ gap: 12 }}>
+              {filteredExercises.map((ex) => (
+                <WorkoutAndExerciseCard
+                  key={ex.id}
+                  title={ex.name}
+                  description={ex.description}
+                  icon={<BicepsFlexed color={appColors.gold} size={18} />}
+                  badges={[ex.primaryMuscleGroup, ex.secondaryMuscleGroup, ex.tertiaryMuscleGroup].filter(
+                    Boolean
+                  ) as string[]}
+                  onPress={() => setSelectedExercise(ex)}
+                />
+              ))}
             </View>
           </View>
         )}
@@ -397,6 +555,17 @@ export default function WorkoutScreen() {
           }}
         />
       )}
+
+      {selectedExercise && (
+        <ExerciseModal exercise={selectedExercise} onClose={() => setSelectedExercise(null)} />
+      )}
+
+      {showCreateExerciseModal && (
+        <CreateExerciseModal
+          onClose={() => setShowCreateExerciseModal(false)}
+          onCreated={fetchExercises}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -404,7 +573,7 @@ export default function WorkoutScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: appColors.black,
   },
   content: {
     padding: 20,
@@ -416,31 +585,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   h1: {
-    color: "#ffffff",
+    color: appColors.white,
     fontSize: 22,
     fontWeight: "600",
   },
   h2: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 17,
     fontWeight: "600",
     marginBottom: 10,
   },
   muted: {
-    color: "#a1a1aa",
+    color: appColors.muted,
   },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     alignSelf: "flex-start",
   },
   addButtonText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
     fontSize: 13,
   },
@@ -453,31 +622,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: whiteAlpha(0.1),
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   tabButtonActive: {
-    borderColor: "#d4af37",
+    borderColor: appColors.gold,
   },
   tabButtonText: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 13,
     fontWeight: "500",
   },
   tabButtonTextActive: {
-    color: "#d4af37",
+    color: appColors.gold,
   },
   activeSessionCard: {
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.25)",
+    borderColor: goldAlpha(0.25),
     borderRadius: 12,
     padding: 16,
     gap: 8,
   },
   activeSessionTitle: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 16,
     fontWeight: "600",
   },

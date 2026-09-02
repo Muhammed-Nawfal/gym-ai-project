@@ -23,4 +23,5 @@ public class SessionExerciseDto {
     private List<SessionSetDto> currentSets;
 
     private String notes;
+    private Double currentPrWeight;
 }

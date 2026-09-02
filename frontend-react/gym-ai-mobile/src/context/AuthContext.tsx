@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import client from "../api/client";
+import client, { setUnauthorizedHandler } from "../api/client";
 
 interface AuthContextType {
   token: string | null;
@@ -79,6 +79,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     setToken(null);
   };
+
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ token, user, isLoading, setToken, logout }}>

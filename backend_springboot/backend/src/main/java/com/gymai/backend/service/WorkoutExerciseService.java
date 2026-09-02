@@ -52,7 +52,9 @@ public class WorkoutExerciseService {
         we.setTargetSets(req.getTargetSets());
         we.setTargetReps(req.getTargetReps());
         we.setRestSeconds(req.getRestSeconds());
-        we.setOrderIndex(req.getOrderIndex());
+        we.setOrderIndex(req.getOrderIndex() != null
+            ? req.getOrderIndex()
+            : workoutExerciseRepository.findByWorkoutIdOrderByOrderIndexAsc(workoutId).size());
         we.setTargetWeightKg(req.getTargetWeightKg());
 
         return workoutExerciseRepository.save(we);
@@ -63,11 +65,11 @@ public class WorkoutExerciseService {
         WorkoutExercise we = workoutExerciseRepository.findById(workoutExerciseId)
             .orElseThrow(() -> new EntityNotFoundException("Exercise not found"));
 
-        we.setTargetSets(req.getTargetSets());
-        we.setTargetReps(req.getTargetReps());
-        we.setRestSeconds(req.getRestSeconds());
-        we.setOrderIndex(req.getOrderIndex());
-        we.setTargetWeightKg(req.getTargetWeightKg());
+        if (req.getTargetSets() != null) we.setTargetSets(req.getTargetSets());
+        if (req.getTargetReps() != null) we.setTargetReps(req.getTargetReps());
+        if (req.getRestSeconds() != null) we.setRestSeconds(req.getRestSeconds());
+        if (req.getOrderIndex() != null) we.setOrderIndex(req.getOrderIndex());
+        if (req.getTargetWeightKg() != null) we.setTargetWeightKg(req.getTargetWeightKg());
 
         return workoutExerciseRepository.save(we);
     }

@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import { appColors, goldAlpha } from "../constants/appColors";
 
 interface TextFieldProps {
   label?: string;
@@ -27,7 +28,7 @@ const TextField: React.FC<TextFieldProps> = ({
         onChangeText={onChange}
         editable={editable}
         placeholder={placeholder}
-        placeholderTextColor="#71717a"
+        placeholderTextColor={appColors.mutedDark}
         secureTextEntry={type === "password"}
         keyboardType={
           type === "number" ? "numeric" : type === "email" ? "email-address" : "default"
@@ -44,16 +45,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: "#e4e4e7",
+    color: appColors.ink,
   },
   input: {
     width: "100%",
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: "#ffffff",
+    color: appColors.white,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
   },
 });
 

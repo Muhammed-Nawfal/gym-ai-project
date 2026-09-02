@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { appColors, goldAlpha } from "../constants/appColors";
 
 type StatsCardProps = {
   title: string;
@@ -25,10 +26,10 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, caption, icon }) =>
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: appColors.cardBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.1),
     padding: 18,
     flex: 1,
   },
@@ -41,16 +42,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 13,
   },
   value: {
-    color: "#d4af37",
+    color: appColors.gold,
     fontSize: 22,
     fontWeight: "600",
   },
   caption: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 13,
   },
 });

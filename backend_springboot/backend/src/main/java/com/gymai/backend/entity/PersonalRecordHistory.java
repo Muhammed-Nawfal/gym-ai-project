@@ -7,9 +7,8 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "personal_record", uniqueConstraints = 
-@UniqueConstraint(columnNames = {"user_id", "exercise_id"}))
-public class PersonalRecord {
+@Table(name = "personal_record_history")
+public class PersonalRecordHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,11 +16,11 @@ public class PersonalRecord {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id") 
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "exercise_id")  
+    @JoinColumn(name = "exercise_id")
     private Exercise exercise;
 
     @Column(name = "weight", nullable = false)
@@ -30,10 +29,10 @@ public class PersonalRecord {
     @Column(name = "reps", nullable = false)
     private Integer reps;
 
-    @Column(name = "achieved_at", nullable = false)
-    private LocalDateTime achievedAt;
-
     @ManyToOne
     @JoinColumn(name = "workout_entry_id")
     private WorkoutEntry workoutEntry;
+
+    @Column(name = "achieved_at", nullable = false)
+    private LocalDateTime achievedAt;
 }

@@ -6,6 +6,7 @@ import { MuscleGroup } from "../types/MuscleGroup";
 import DialogBoxModal from "./DialogBoxModal";
 import DropDownTextField from "./DropDownTextField";
 import TextField from "./TextField";
+import { appColors, blackAlpha, goldAlpha, whiteAlpha } from "../constants/appColors";
 
 type Exercise = {
   id: number;
@@ -134,7 +135,7 @@ const ChooseExercisesModal: React.FC<Props> = ({
                   </View>
                 </View>
                 <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-                  {checked ? <Text style={{ color: "#d4af37" }}>✓</Text> : null}
+                  {checked ? <Text style={{ color: appColors.gold }}>✓</Text> : null}
                 </View>
               </TouchableOpacity>
             );
@@ -164,22 +165,22 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-    backgroundColor: "rgba(0,0,0,0.3)",
+    borderColor: whiteAlpha(0.1),
+    backgroundColor: blackAlpha(0.3),
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
   },
   optionChecked: {
-    borderColor: "rgba(212, 175, 55, 0.6)",
-    backgroundColor: "rgba(212, 175, 55, 0.1)",
+    borderColor: goldAlpha(0.6),
+    backgroundColor: goldAlpha(0.1),
   },
   optionTitle: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontWeight: "500",
   },
   optionDesc: {
-    color: "#a1a1aa",
+    color: appColors.muted,
     fontSize: 13,
     marginTop: 2,
   },
@@ -191,13 +192,13 @@ const styles = StyleSheet.create({
   },
   badge: {
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.2)",
+    borderColor: goldAlpha(0.2),
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   badgeText: {
-    color: "#e4e4e7",
+    color: appColors.ink,
     fontSize: 11,
   },
   checkbox: {
@@ -205,13 +206,13 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: whiteAlpha(0.2),
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
-    borderColor: "#d4af37",
-    backgroundColor: "rgba(212, 175, 55, 0.2)",
+    borderColor: appColors.gold,
+    backgroundColor: goldAlpha(0.2),
   },
   buttonRow: {
     flexDirection: "row",
@@ -219,24 +220,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   btnPrimary: {
-    backgroundColor: "#d4af37",
+    backgroundColor: appColors.gold,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnPrimaryText: {
-    color: "#000000",
+    color: appColors.black,
     fontWeight: "600",
   },
   btnDanger: {
     borderWidth: 1,
-    borderColor: "#ef4444",
+    borderColor: appColors.danger,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   btnDangerText: {
-    color: "#ef4444",
+    color: appColors.danger,
     fontWeight: "600",
   },
 });
