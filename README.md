@@ -1,6 +1,6 @@
 # 🦖 JackZilla
 
-JackZilla (formerly GymAI) is a full-stack fitness platform with a built-in AI coach. Track workouts and personal records, get AI-generated training plans, and receive proactive coaching when your progress stalls — all in a sleek, mobile-first app.
+JackZilla is a full-stack fitness platform with a built-in AI coach. Track workouts and personal records, get AI-generated training plans, and receive proactive coaching when your progress stalls — all in a sleek, mobile-first app.
 
 > **Status:** 🚧 Active development — core tracking, personal records, and the AI coach are built and working end-to-end; polish and v2 features are ongoing.
 
@@ -67,10 +67,3 @@ npm install
 npx expo start
 ```
 By default it points at `http://localhost:8080` (or `10.0.2.2:8080` on Android emulator). Override with an `EXPO_PUBLIC_API_URL` env var if your backend runs elsewhere.
-
-### Web App (legacy, optional)
-```
-cd frontend-react/frontend
-npm install
-npm run dev
-```
