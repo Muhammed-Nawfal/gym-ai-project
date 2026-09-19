@@ -8,6 +8,7 @@ import client from "../../api/client";
 import DropDownTextField from "../../components/DropDownTextField";
 import TextField from "../../components/TextField";
 import { useAuth } from "../../context/AuthContext";
+import LoadingScreen from "../../components/LoadingScreen";
 import { Goal } from "../../types/Goal";
 import { SkillLevel } from "../../types/SkillLevel";
 import { appColors, goldAlpha } from "../../constants/appColors";
@@ -101,11 +102,7 @@ export default function Profile() {
   };
 
   if (!user) {
-    return (
-      <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
-        <Text style={styles.muted}>Loading...</Text>
-      </SafeAreaView>
-    );
+    return <LoadingScreen />;
   }
 
   const goalOptions = [

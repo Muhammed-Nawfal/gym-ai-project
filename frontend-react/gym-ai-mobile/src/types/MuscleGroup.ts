@@ -5,6 +5,7 @@ export const MuscleGroup = {
   TRICEP: "TRICEP",
   SHOULDERS: "SHOULDERS",
   LEG: "LEG",
+  CORE: "CORE",
 } as const;
 
 export type MuscleGroup = typeof MuscleGroup[keyof typeof MuscleGroup];

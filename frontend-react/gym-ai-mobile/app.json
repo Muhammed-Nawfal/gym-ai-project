@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "gym-ai-mobile",
-    "slug": "gym-ai-mobile",
+    "name": "JackZilla",
+    "slug": "jackzilla",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "gymaimobile",
+    "scheme": "jackzilla",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -33,7 +33,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

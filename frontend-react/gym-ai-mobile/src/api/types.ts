@@ -118,4 +118,51 @@ export interface PersonalRecordHistoryDto {
   workoutEntryId: number | null;
 }
 
+export interface ProposedExerciseDto {
+  exerciseName: string;
+  sets: number | null;
+  targetReps: number | null;
+  restSeconds: number | null;
+  primaryMuscleGroup?: MuscleGroup;
+  secondaryMuscleGroup?: MuscleGroup;
+}
+
+export interface ProposedWorkoutDto {
+  workoutId: number | null;
+  workoutName: string;
+  exercises: ProposedExerciseDto[];
+}
+
+export interface ProposedWorkoutPlan {
+  workouts: ProposedWorkoutDto[];
+}
+
+export type ChatRole = "USER" | "ASSISTANT";
+
+export interface ChatSummaryDto {
+  id: number;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessageDto {
+  id: number;
+  role: ChatRole;
+  content: string;
+  proposedWorkoutPlan: ProposedWorkoutPlan | null;
+  planApplied: boolean;
+  resolvableInsight: { insightId: number } | null;
+  insightResolved: boolean;
+  createdAt: string;
+}
+
+export interface CoachInsightDto {
+  id: number;
+  exerciseName: string | null;
+  message: string;
+  createdAt: string;
+  resolved: boolean;
+}
+
 

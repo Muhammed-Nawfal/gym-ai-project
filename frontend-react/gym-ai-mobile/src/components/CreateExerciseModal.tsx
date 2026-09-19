@@ -67,6 +67,7 @@ const CreateExerciseModal: React.FC<CreateExerciseModalProps> = ({ onClose, onCr
     { value: MuscleGroup.TRICEP, label: "Tricep" },
     { value: MuscleGroup.SHOULDERS, label: "Shoulder" },
     { value: MuscleGroup.LEG, label: "Leg" },
+    { value: MuscleGroup.CORE, label: "Core" },
   ];
 
   return (

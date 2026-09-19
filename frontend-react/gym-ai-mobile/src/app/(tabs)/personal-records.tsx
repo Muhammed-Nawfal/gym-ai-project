@@ -1,12 +1,13 @@
 import { ChevronLeft, ChevronRight, Dumbbell, Search, Trophy, TrendingUp } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Line, Path, Text as SvgText } from "react-native-svg";
 import client from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import type { PersonalRecordDto, PersonalRecordHistoryDto, PersonalRecordStatsDto } from "../../api/types";
 import { appColors, goldAlpha, whiteAlpha } from "../../constants/appColors";
+import LoadingScreen from "../../components/LoadingScreen";
 
 export default function PersonalRecordScreen() {
 
@@ -21,6 +22,8 @@ export default function PersonalRecordScreen() {
     const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
     const [history, setHistory] = useState<PersonalRecordHistoryDto[]>([]);
     const [metric, setMetric] = useState<"weight" | "volume">("weight");
+    const [loading, setLoading] = useState(true);
+    const [loadingDetail, setLoadingDetail] = useState(false);
 
   const fetchRecords = async () => {
     const res = await client.get<PersonalRecordDto[]>(`/api/personal-records/user/${userId}`, { headers: { Authorization: `Bearer ${token}` }});
@@ -34,20 +37,24 @@ export default function PersonalRecordScreen() {
 
   useEffect(() => {
     if(!userId) return;
-    fetchRecords();
-    fetchStats();
+    Promise.allSettled([fetchRecords(), fetchStats()]).finally(() => setLoading(false));
   }, [userId]);
 
   const openDetail = async (exerciseId : number) => {
     setSelectedExerciseId(exerciseId);
     setMetric("weight");
     setView("detail");
+    setLoadingDetail(true);
 
-    const res = await client.get<PersonalRecordHistoryDto[]>(
-    `/api/personal-records/user/${userId}/exercise/${exerciseId}/history`,
-    { headers: { Authorization: `Bearer ${token}` }});
+    try {
+      const res = await client.get<PersonalRecordHistoryDto[]>(
+      `/api/personal-records/user/${userId}/exercise/${exerciseId}/history`,
+      { headers: { Authorization: `Bearer ${token}` }});
 
-    setHistory(res.data || []);
+      setHistory(res.data || []);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const backToList = () => setView("list");
@@ -127,6 +134,10 @@ export default function PersonalRecordScreen() {
 
     return { points, pathD, minVal, maxVal };
   }, [chartSeries]);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -323,6 +334,8 @@ export default function PersonalRecordScreen() {
                     : formatVolume(chartGeometry.points[chartGeometry.points.length - 1].value)}
                 </SvgText>
               </Svg>
+            ) : loadingDetail ? (
+              <ActivityIndicator color={appColors.gold} />
             ) : (
               <Text style={styles.muted}>Not enough data yet.</Text>
             )}

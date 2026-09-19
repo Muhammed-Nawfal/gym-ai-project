@@ -1,4 +1,4 @@
-import { Dumbbell, House, Trophy, User } from 'lucide-react-native';
+import { Bot, Dumbbell, House, Trophy, User } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { appColors, goldAlpha } from "../constants/appColors";
 
@@ -28,6 +28,13 @@ export default function AppTabs() {
         options={{
           title: 'Workouts',
           tabBarIcon: ({ color, size }) => <Dumbbell color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="coach"
+        options={{
+          title: 'Coach',
+          tabBarIcon: ({ color, size}) => <Bot color={color} size={size} />
         }}
       />
       <Tabs.Screen

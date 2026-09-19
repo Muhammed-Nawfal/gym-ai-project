@@ -62,6 +62,7 @@ const CreateWorkoutModal: React.FC<Props> = ({ mode, workoutId, onClose, onSaved
     { value: MuscleGroup.TRICEP, label: "Tricep" },
     { value: MuscleGroup.SHOULDERS, label: "Shoulder" },
     { value: MuscleGroup.LEG, label: "Leg" },
+    { value: MuscleGroup.CORE, label: "Core" },
   ];
 
   useEffect(() => {
