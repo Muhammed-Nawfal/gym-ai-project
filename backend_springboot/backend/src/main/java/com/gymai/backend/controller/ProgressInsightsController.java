@@ -6,9 +6,13 @@ import com.gymai.backend.entity.User;
 import com.gymai.backend.repository.CoachInsightRepository;
 import com.gymai.backend.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,15 +22,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/insights")
+@RequiredArgsConstructor 
 public class ProgressInsightsController {
 
     private final CoachInsightRepository coachInsightRepository;
     private final UserRepository userRepository;
-
-    public ProgressInsightsController(CoachInsightRepository coachInsightRepository, UserRepository userRepository) {
-        this.coachInsightRepository = coachInsightRepository;
-        this.userRepository = userRepository;
-    }
 
     @GetMapping
     public List<CoachInsightDto> getInsights() {
@@ -40,6 +40,25 @@ public class ProgressInsightsController {
                 .stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    @PatchMapping("/{id}/resolve")
+    public void resolveInsight(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        CoachInsight insight = coachInsightRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Insight not found"));
+
+        if (!insight.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Insight not found");
+        }
+
+        insight.setResolved(true);
+        coachInsightRepository.save(insight);
     }
 
     private CoachInsightDto toDto(CoachInsight insight) {

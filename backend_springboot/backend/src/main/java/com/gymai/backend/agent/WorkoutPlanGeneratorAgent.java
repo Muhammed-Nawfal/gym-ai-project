@@ -4,6 +4,7 @@ import com.google.adk.agents.LlmAgent;
 import com.google.adk.tools.FunctionTool;
 import com.google.genai.Client;
 import com.google.adk.models.Gemini;
+import com.google.genai.types.GenerateContentConfig;
 
 public class WorkoutPlanGeneratorAgent {
 
@@ -44,12 +45,17 @@ public class WorkoutPlanGeneratorAgent {
                     for advanced users, be terse and use technical framing (RPE/RIR, deload weeks,
                     periodization) rather than basic explanations.
                     """)
-                .model(new Gemini("gemini-3.5-flash", client))
+                .model(new Gemini("gemini-3.6-flash", client))
                 .tools(searchTool, userProfileTool, workoutHistoryTool,
                         personalRecordsTool, personalRecordStatsTool,
                         userExercisesTool, workoutSplitTool,
                         personalRecordHistoryForExerciseTool, previousPerformanceTool,
                         workoutCountTool, currentActiveSessionTool)
+                .generateContentConfig(
+                    GenerateContentConfig.builder()
+                        .maxOutputTokens(2048)
+                        .build()
+                )
                 .build();
             return agent;
 
