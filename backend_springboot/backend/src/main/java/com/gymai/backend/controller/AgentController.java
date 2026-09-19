@@ -1,7 +1,10 @@
-package com.gymai.backend.agent;
+package com.gymai.backend.controller;
 
 import com.gymai.backend.entity.User;
 import com.gymai.backend.repository.UserRepository;
+import com.gymai.backend.service.GymAgentService;
+import com.gymai.backend.service.GymAgentService.ChatResult;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,10 +34,11 @@ public class AgentController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
-        String reply = gymAgentService.chat(String.valueOf(user.getId()), request.message());
-        return new ChatResponse(reply);
+        ChatResult result = gymAgentService.chat(String.valueOf(user.getId()), request.message());
+        return new ChatResponse(result.reply(), result.proposedWorkoutPlan());
     }
 
     public record ChatRequest(String message) {}
-    public record ChatResponse(String reply) {}
+    public record ChatResponse(String reply, Object proposedWorkoutPlan) {}
+    
 }

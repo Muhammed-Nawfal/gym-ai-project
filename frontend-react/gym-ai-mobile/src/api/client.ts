@@ -1,8 +1,16 @@
 import axios from "axios";
 import { router } from "expo-router";
+import { Platform } from "react-native";
+
+const baseURL =
+  process.env.EXPO_PUBLIC_API_URL ??
+  Platform.select({
+    android: "http://10.0.2.2:8080",
+    default: "http://localhost:8080",
+  });
 
 const client = axios.create({
-  baseURL: "http://10.0.2.2:8080",
+  baseURL,
 });
 
 // AuthContext registers itself here so the interceptor below can clear the

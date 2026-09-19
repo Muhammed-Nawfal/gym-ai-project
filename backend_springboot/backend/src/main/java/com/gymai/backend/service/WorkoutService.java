@@ -1,7 +1,9 @@
 package com.gymai.backend.service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -21,6 +23,7 @@ import com.gymai.backend.dto.WorkoutListDto;
 import com.gymai.backend.entity.User;
 import com.gymai.backend.entity.Workout;
 import com.gymai.backend.entity.WorkoutExercise;
+import com.gymai.backend.enums.MuscleGroup;
 
 import lombok.RequiredArgsConstructor;
 
@@ -134,6 +137,52 @@ public class WorkoutService {
         Workout saved = workoutRepository.save(workout);
 
         return toDetailDto(saved);
+    }
+
+
+    @Transactional
+    public Workout applyWorkoutPlan(Long workoutId, String workoutName, List<WorkoutExercise> newExercises, Authentication auth) {
+        User me = userRepository.findByEmail(auth.getName())
+            .orElseThrow(() -> new AccessDeniedException("User not found"));
+
+        Workout workout;
+        if (workoutId != null) {
+            workout = workoutRepository.findById(workoutId)
+                .orElseThrow(() -> new EntityNotFoundException("Workout not found"));
+
+            if (Boolean.TRUE.equals(workout.getIsPredefined())) {
+                throw new AccessDeniedException("Predefined workouts cannot be edited");
+            }
+            if (!workout.getUser().getId().equals(me.getId())) {
+                throw new AccessDeniedException("You do not own this workout");
+            }
+
+            List<WorkoutExercise> existing = workoutExerciseRepository.findByWorkoutIdOrderByOrderIndexAsc(workoutId);
+            workoutExerciseRepository.deleteAll(existing);
+        } else {
+            workout = new Workout();
+            workout.setUser(me);
+            workout.setIsPredefined(false);
+        }
+
+        workout.setName(workoutName);
+
+        Set<MuscleGroup> muscleGroups = new LinkedHashSet<>();
+        for (WorkoutExercise we : newExercises) {
+            if (we.getExercise().getPrimaryMuscleGroup() != null) {
+                muscleGroups.add(we.getExercise().getPrimaryMuscleGroup());
+            }
+        }
+        workout.setMuscleGroups(new ArrayList<>(muscleGroups));
+
+        workout = workoutRepository.save(workout);
+
+        for (WorkoutExercise we : newExercises) {
+            we.setWorkout(workout);
+            workoutExerciseRepository.save(we);
+        }
+
+        return workout;
     }
 
 

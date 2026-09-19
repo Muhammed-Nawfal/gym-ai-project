@@ -18,7 +18,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, caption, icon }) =>
           <Text style={styles.value}>{value}</Text>
           {caption ? <Text style={styles.caption}>{caption}</Text> : null}
         </View>
-        {icon ? <View>{icon}</View> : null}
+        {icon ? <View style={styles.iconBadge}>{icon}</View> : null}
       </View>
     </View>
   );
@@ -52,7 +52,15 @@ const styles = StyleSheet.create({
   },
   caption: {
     color: appColors.muted,
-    fontSize: 13,
+    fontSize: 10,
+  },
+  iconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: goldAlpha(0.15),
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

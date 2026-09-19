@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -90,7 +91,11 @@ export default function Register() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Gym AI</Text>
+        <Image
+          source={require("../../../assets/images/jackzilla-wordmark.png")}
+          style={styles.wordmark}
+          resizeMode="contain"
+        />
         <Text style={styles.subtitle}>Create your account</Text>
 
         <View style={styles.row}>
@@ -186,10 +191,9 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: appColors.white,
+  wordmark: {
+    width: 220,
+    height: 88,
   },
   subtitle: {
     color: appColors.muted,

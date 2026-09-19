@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -43,7 +44,11 @@ export default function Login() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Gym AI</Text>
+        <Image
+          source={require("../../assets/images/jackzilla-wordmark.png")}
+          style={styles.wordmark}
+          resizeMode="contain"
+        />
         <Text style={styles.subtitle}>Sign in to your account</Text>
 
         <TextInput
@@ -99,10 +104,9 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: appColors.white,
+  wordmark: {
+    width: 220,
+    height: 88,
     marginBottom: 4,
   },
   subtitle: {

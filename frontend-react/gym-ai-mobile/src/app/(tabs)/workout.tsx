@@ -1,6 +1,6 @@
 import { BicepsFlexed, Dumbbell, PlayCircle, Plus } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import client from "../../api/client";
 import CreateExerciseModal from "../../components/CreateExerciseModal";
@@ -68,15 +68,19 @@ export default function WorkoutScreen() {
   const [exerciseFilters, setExerciseFilters] = useState({ muscleGroup: "all" });
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+  const [loadingExercises, setLoadingExercises] = useState(false);
 
   const fetchExercises = async () => {
     try {
+      setLoadingExercises(true);
       const res = await client.get("/api/exercise", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setExercises(res.data || []);
     } catch (err) {
       console.error("Error fetching exercises:", err);
+    } finally {
+      setLoadingExercises(false);
     }
   };
 
@@ -180,6 +184,7 @@ export default function WorkoutScreen() {
     { value: MuscleGroup.TRICEP, label: "Tricep" },
     { value: MuscleGroup.SHOULDERS, label: "Shoulder" },
     { value: MuscleGroup.LEG, label: "Leg" },
+    { value: MuscleGroup.CORE, label: "Core" },
   ];
 
   const filterOptions = [
@@ -380,7 +385,7 @@ export default function WorkoutScreen() {
               <View>
                 <Text style={styles.h2}>My Workouts</Text>
                 {loadingUser ? (
-                  <Text style={styles.muted}>Loading...</Text>
+                  <ActivityIndicator color={appColors.gold} style={{ marginTop: 16 }} />
                 ) : (
                   <View style={{ gap: 12 }}>
                     {filteredMyWorkouts.map((w) => (
@@ -401,7 +406,7 @@ export default function WorkoutScreen() {
             <View>
               <Text style={styles.h2}>Predefined Workouts</Text>
               {loadingPredefined ? (
-                <Text style={styles.muted}>Loading...</Text>
+                <ActivityIndicator color={appColors.gold} style={{ marginTop: 16 }} />
               ) : (
                 <View style={{ gap: 12 }}>
                   {filteredAllPredefined.map((w) => (
@@ -493,20 +498,24 @@ export default function WorkoutScreen() {
               filterOptions={exerciseFilterOptions}
             />
 
-            <View style={{ gap: 12 }}>
-              {filteredExercises.map((ex) => (
-                <WorkoutAndExerciseCard
-                  key={ex.id}
-                  title={ex.name}
-                  description={ex.description}
-                  icon={<BicepsFlexed color={appColors.gold} size={18} />}
-                  badges={[ex.primaryMuscleGroup, ex.secondaryMuscleGroup, ex.tertiaryMuscleGroup].filter(
-                    Boolean
-                  ) as string[]}
-                  onPress={() => setSelectedExercise(ex)}
-                />
-              ))}
-            </View>
+            {loadingExercises ? (
+              <ActivityIndicator color={appColors.gold} style={{ marginTop: 16 }} />
+            ) : (
+              <View style={{ gap: 12 }}>
+                {filteredExercises.map((ex) => (
+                  <WorkoutAndExerciseCard
+                    key={ex.id}
+                    title={ex.name}
+                    description={ex.description}
+                    icon={<BicepsFlexed color={appColors.gold} size={18} />}
+                    badges={[ex.primaryMuscleGroup, ex.secondaryMuscleGroup, ex.tertiaryMuscleGroup].filter(
+                      Boolean
+                    ) as string[]}
+                    onPress={() => setSelectedExercise(ex)}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
