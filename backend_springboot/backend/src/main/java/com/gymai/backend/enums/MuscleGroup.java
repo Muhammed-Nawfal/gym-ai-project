@@ -6,5 +6,6 @@ public enum MuscleGroup {
     BICEP,
     TRICEP,
     SHOULDERS,
-    LEG    
+    LEG,
+    CORE
 }

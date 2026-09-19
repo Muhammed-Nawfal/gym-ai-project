@@ -4,6 +4,7 @@ import com.google.adk.agents.LlmAgent;
 import com.google.adk.models.Gemini;
 import com.google.adk.tools.FunctionTool;
 import com.google.genai.Client;
+import com.google.genai.types.GenerateContentConfig;
 
 public class InjurySafetySpecialistAgent {
     public static LlmAgent buildAgent(Client client, FunctionTool searchTool) {
@@ -17,8 +18,13 @@ public class InjurySafetySpecialistAgent {
                 Use the provided search tool to gather information when necessary, and ensure that your responses are accurate, clear, and helpful.
                 Make sure your responses are based on the latest research and best practices in the field of exercise science, physiotherapy and injury prevention.
                 """)
-            .model(new Gemini("gemini-3.5-flash", client))
+            .model(new Gemini("gemini-3.6-flash", client))
             .tools(searchTool)
+            .generateContentConfig(
+                GenerateContentConfig.builder()
+                    .maxOutputTokens(1024)
+                    .build()
+            )
             .build();
         return agent;
     }

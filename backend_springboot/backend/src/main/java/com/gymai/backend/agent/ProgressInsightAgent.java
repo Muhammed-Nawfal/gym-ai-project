@@ -36,19 +36,18 @@ public class ProgressInsightAgent {
                     workout-plan-generator-agent, which the root agent can call separately if the user
                     wants concrete changes.
                     """)
-                .model(new Gemini("gemini-3.5-flash", client))
+                .model(new Gemini("gemini-3.6-flash", client))
                 .tools(userProfileTool, workoutHistoryTool, personalRecordsTool,
                         personalRecordStatsTool, workoutSplitTool,
                         personalRecordHistoryForExerciseTool, previousPerformanceTool,
                         workoutCountTool);
 
+            GenerateContentConfig.Builder configBuilder = GenerateContentConfig.builder()
+                    .maxOutputTokens(1024);
             if (forceJsonOutput) {
-                builder.generateContentConfig(
-                    GenerateContentConfig.builder()
-                        .responseMimeType("application/json")
-                        .build()
-                );
+                configBuilder.responseMimeType("application/json");
             }
+            builder.generateContentConfig(configBuilder.build());
 
             return builder.build();
 

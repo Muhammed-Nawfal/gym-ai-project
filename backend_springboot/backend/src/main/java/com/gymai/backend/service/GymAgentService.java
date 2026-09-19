@@ -13,6 +13,7 @@ import com.google.adk.tools.FunctionTool;
 import com.google.adk.tools.ToolContext;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
+import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.Part;
 import com.gymai.backend.agent.InjurySafetySpecialistAgent;
 import com.gymai.backend.agent.ProgressInsightAgent;
@@ -23,6 +24,7 @@ import com.gymai.backend.dto.PersonalRecordStatsDto;
 import com.gymai.backend.dto.PreviousExercisePerformanceResponse;
 import com.gymai.backend.dto.PreviousSetDto;
 import com.gymai.backend.dto.ProposedExerciseDto;
+import com.gymai.backend.dto.ProposedWorkoutDto;
 import com.gymai.backend.dto.SessionExerciseDto;
 import com.gymai.backend.dto.StartWorkoutResponse;
 import com.gymai.backend.dto.WorkoutDetailDto;
@@ -32,9 +34,12 @@ import com.gymai.backend.repository.ExerciseRepository;
 import com.gymai.backend.entity.*;
 
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,6 +56,8 @@ import java.util.Optional;
 
 @Service
 public class GymAgentService {
+
+    private static final Logger logger = LoggerFactory.getLogger(GymAgentService.class);
 
     @Value("${GEMINI_API_KEY}")
     private String apiKey;
@@ -104,6 +111,7 @@ public class GymAgentService {
         FunctionTool workoutSplitTool = FunctionTool.create(this, "getWorkoutSplit");
         FunctionTool currentActiveSessionTool = FunctionTool.create(this, "getCurrentActiveSession");
         FunctionTool proposeWorkoutPlanTool = FunctionTool.create(this, "proposeWorkoutPlan");
+        FunctionTool resolveInsightTool = FunctionTool.create(this, "resolveInsight");
 
         LlmAgent injurySpecialist = InjurySafetySpecialistAgent.buildAgent(client, searchTool);
         AgentTool injurySpecialistTool = AgentTool.create(injurySpecialist);    
@@ -155,15 +163,54 @@ public class GymAgentService {
                     goals) so the sub-agent doesn't have to ask the user to repeat itself.
 
                     Once the user explicitly approves a finalized workout plan — whether one you proposed yourself
-                    or one the workout-plan-generator-agent suggested — call the proposeWorkoutPlan tool with the
-                    complete plan as structured data, so it can actually be saved. Only call it after clear approval,
-                    never while still drafting or discussing options.
+                    or one the workout-plan-generator-agent suggested — call the proposeWorkoutPlan tool YOURSELF,
+                    directly, with the complete plan as structured data, so it can actually be saved. Only call it
+                    after clear approval, never while still drafting or discussing options.
+
+                    Do NOT call workout-plan-generator-agent again at this step. Its only job is drafting a plan
+                    for discussion; it does not know what's already been shown to the user and does not have
+                    access to proposeWorkoutPlan. Once a plan has been drafted and the user is now just approving
+                    it, you must build the proposeWorkoutPlan arguments yourself, directly from the exact workouts
+                    and exercises already visible earlier in this same conversation — never by asking the sub-agent
+                    again, and never by re-deriving a plan from the user's currently saved workout split. Re-calling
+                    the sub-agent at this point risks producing a different plan than the one the user approved.
+
+                    Use real conversational judgment for approval, not keyword matching. If your previous message
+                    presented a finished plan and asked whether to save it, then the user's next message — however
+                    short, and in whatever words — should be read in that context. A short reply right after that
+                    question is answering that question. Only fall back to asking a clarifying question if the
+                    reply is genuinely ambiguous even given everything you just said to them, not merely because
+                    it's brief. Do not restate the plan or ask the user to confirm a second time once they've
+                    already approved it, and do not reinterpret their reply as an unrelated request (like adding
+                    one specific exercise) unless they actually name a specific exercise and day themselves.
+
+                    When the approved plan covers multiple workout days (e.g. a Push/Pull/Legs or Upper/Lower
+                    split), every one of those workouts must be included as its own entry in the workouts list of
+                    a SINGLE proposeWorkoutPlan call. Never split one approval across multiple calls, and never
+                    save only some of the workouts the user approved while leaving the rest out.
+
+                    If the user's message describes a stagnation insight the coach flagged (it will name a
+                    specific exercise and describe the issue directly), treat this conversation as being about
+                    that insight. Explain what's likely going on and concrete next steps, the same as you would
+                    for any other progression question. A new user won't know they can ask you to close the
+                    insight out, so naturally close your explanation by letting them know that once they're
+                    satisfied with the advice, they can just say so and you'll mark it resolved for them — phrase
+                    it however fits the conversation, don't recite it as a script. Only once the user has actually
+                    engaged with your explanation and clearly indicates they're ready to close it out — not just
+                    because they said "ok" to your first reply — call the resolveInsight tool so they can confirm
+                    via a button. Never call it while you're still explaining the issue, and never call it if this
+                    conversation isn't tied to a specific insight.
                 """)
-                .model(new Gemini("gemini-3.5-flash", client))
+                .model(new Gemini("gemini-3.6-flash", client))
                 .tools(searchTool, workoutHistoryTool, personalRecordsTool, personalRecordStatsTool,
                         personalRecordHistoryForExerciseTool, userProfileTool, userExercisesTool,
-                        previousPerformanceTool, workoutCountTool, workoutSplitTool, currentActiveSessionTool, 
-                        injurySpecialistTool, workoutPlanGeneratorTool, progressInsightAgentTool, proposeWorkoutPlanTool)
+                        previousPerformanceTool, workoutCountTool, workoutSplitTool, currentActiveSessionTool,
+                        injurySpecialistTool, workoutPlanGeneratorTool, progressInsightAgentTool, proposeWorkoutPlanTool, resolveInsightTool)
+                .generateContentConfig(
+                    GenerateContentConfig.builder()
+                        .maxOutputTokens(1536)
+                        .build()
+                )
                 .build();
         runner = new InMemoryRunner(agent);
     }
@@ -467,35 +514,68 @@ public class GymAgentService {
     }
 
     @Schema(description = "Call this ONLY once the user has explicitly approved a finalized workout "
-        + "plan (a brand new plan, or changes to an existing one) and wants it saved. Pass the "
-        + "complete, final plan as structured data. Do not call this while still discussing or "
-        + "drafting ideas with the user — only once they've said something like 'yes, apply it'.")
+        + "plan and wants it saved — a single workout, or a full multi-day split. Pass every workout "
+        + "in the approved plan in ONE call via the workouts list, even if it's a 4- or 5-day split; "
+        + "never call this once per day. Do not call this while still discussing or drafting ideas "
+        + "with the user — only once they've said something like 'yes, apply it'.")
     public Map<String, Object> proposeWorkoutPlan(
             @Schema(name = "toolContext") ToolContext toolContext,
-            @Schema(description = "For an edit to an existing workout, its workoutId (from getWorkoutSplit). "
-                    + "Omit or leave null for a brand new workout.", name = "workoutId") Long workoutId,
-            @Schema(description = "Name for the workout", name = "workoutName") String workoutName,
-            @Schema(description = "The finalized list of exercises in the plan, each with a single "
-                    + "target rep count to start at (not a range) — for double-progression exercises "
-                    + "still climbing reps, use the next rep count the user should aim for this time, "
-                    + "not the eventual top of the range", name = "exercises") List<ProposedExerciseDto> exercises
+            @Schema(description = "Every workout in the approved plan, in order. A single-workout change "
+                    + "has one entry; a full split (e.g. Push/Pull/Legs, or a 4-day Upper/Lower) has one "
+                    + "entry per workout day — all in this same list, in this same call. For every exercise, "
+                    + "always set primaryMuscleGroup to exactly one of: CHEST, BACK, BICEP, TRICEP, SHOULDERS, "
+                    + "LEG, CORE — whichever that exercise primarily targets. Set secondaryMuscleGroup the same way "
+                    + "if there's an obvious secondary target, otherwise omit it. This is required even for "
+                    + "exercises you're confident already exist, since it's used to create the exercise in the "
+                    + "library on the rare case it doesn't.",
+                    name = "workouts") List<ProposedWorkoutDto> workouts
         )
     {
-
-        Map<String, Object> plan = new HashMap<>();
-        plan.put("workoutId", workoutId);
-        plan.put("workoutName", workoutName);
-        plan.put("exercises", exercises);
-        toolContext.state().put("proposedWorkoutPlan", plan);
+        toolContext.state().put("proposedWorkoutPlan", Map.of("workouts", workouts));
 
         return Map.of("status", "Plan captured and ready to apply.");
     }
 
-    public ChatResult chat(String userId, String message) {
-        Map<String, Object> initialState = Map.of("userId", userId);
+    @Schema(description = "Call this ONLY when the current conversation is about a specific stagnation "
+        + "insight AND the user has engaged with your explanation and clearly indicated they're ready "
+        + "to close it out. This does not resolve the insight itself — it surfaces a confirm button so "
+        + "the user makes the final call. Never call this while still explaining the issue, and never "
+        + "call it if this conversation isn't tied to a specific insight.")
+    public Map<String, Object> resolveInsight(@Schema(name = "toolContext") ToolContext toolContext) {
+        Object insightId = toolContext.state().get("insightId");
+        if (insightId == null) {
+            return Map.of("error", "This conversation isn't linked to a specific insight, so there's nothing to resolve.");
+        }
+
+        toolContext.state().put("resolvableInsight", Map.of("insightId", Long.valueOf((String) insightId)));
+        return Map.of("status", "Surfaced a confirm button for the user.");
+    }
+
+    public ChatResult chat(String userId, Long chatId, String message, Long insightId) {
+        String sessionId = String.valueOf(chatId);
+        Map<String, Object> initialState = insightId != null
+            ? Map.of("userId", userId, "insightId", String.valueOf(insightId))
+            : Map.of("userId", userId);
+
+
         Session session = runner.sessionService()
-            .getSession(runner.appName(), userId, userId, Optional.empty())
-            .switchIfEmpty(runner.sessionService().createSession(runner.appName(), userId, initialState, userId)).blockingGet();
+            .getSession(runner.appName(), userId, sessionId, Optional.empty())
+            .switchIfEmpty(Maybe.defer(() ->
+                runner.sessionService().createSession(runner.appName(), userId, initialState, sessionId).toMaybe()))
+            .blockingGet();
+
+        logger.info("=== [chat debug] session {} has {} prior events before sending: \"{}\"",
+                sessionId, session.events().size(), message);
+        for (Event e : session.events()) {
+            String text = e.content()
+                    .flatMap(c -> c.parts())
+                    .map(parts -> parts.stream()
+                            .map(p -> p.text().orElse(p.functionCall().isPresent() ? "[functionCall:" + p.functionCall().get().name().orElse("?") + "]" : (p.functionResponse().isPresent() ? "[functionResponse:" + p.functionResponse().get().name().orElse("?") + "]" : "[non-text part]")))
+                            .reduce("", (a, b) -> a + " | " + b))
+                    .orElse("[no content]");
+            String snippet = text.length() > 300 ? text.substring(0, 300) + "...(truncated)" : text;
+            logger.info("=== [chat debug] event author={} snippet={}", e.author(), snippet);
+        }
 
         Content userMsg = Content.fromParts(Part.fromText(message));
         Flowable<Event> events = runner.runAsync(session.userId(), session.id(), userMsg);
@@ -512,9 +592,12 @@ public class GymAgentService {
         Object proposedPlan = updatedSession.state().get("proposedWorkoutPlan");
         updatedSession.state().remove("proposedWorkoutPlan");
 
-        return new ChatResult(reply.toString(), proposedPlan);
+        Object resolvableInsight = updatedSession.state().get("resolvableInsight");
+        updatedSession.state().remove("resolvableInsight");
+
+        return new ChatResult(reply.toString(), proposedPlan, resolvableInsight);
     }
 
-    public record ChatResult(String reply, Object proposedWorkoutPlan) {}
+    public record ChatResult(String reply, Object proposedWorkoutPlan, Object resolvableInsight) {}
 
 }

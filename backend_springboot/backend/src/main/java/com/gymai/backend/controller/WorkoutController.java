@@ -9,14 +9,17 @@ import org.springframework.web.bind.annotation.*;
 
 import com.gymai.backend.dto.AddWorkoutToRoutineRequest;
 import com.gymai.backend.dto.ApplyWorkoutPlanRequest;
+import com.gymai.backend.dto.ApplyWorkoutPlanResponse;
 import com.gymai.backend.dto.ProposedExerciseDto;
 import com.gymai.backend.dto.UpdateWorkoutRequest;
 import com.gymai.backend.dto.WorkoutDetailDto;
 import com.gymai.backend.dto.WorkoutListDto;
 import com.gymai.backend.entity.Exercise;
+import com.gymai.backend.entity.User;
 import com.gymai.backend.entity.Workout;
 import com.gymai.backend.entity.WorkoutExercise;
 import com.gymai.backend.repository.ExerciseRepository;
+import com.gymai.backend.repository.UserRepository;
 import com.gymai.backend.service.WorkoutService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ public class WorkoutController {
 
     private final WorkoutService workoutService;
     private final ExerciseRepository exerciseRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<WorkoutListDto>> getUserWorkouts(@PathVariable Long userId){
@@ -70,14 +74,29 @@ public class WorkoutController {
     }
 
     @PostMapping("/apply-plan")
-    public ResponseEntity<Workout> applyWorkoutPlan(@RequestBody ApplyWorkoutPlanRequest request, Authentication auth) {
+    public ResponseEntity<ApplyWorkoutPlanResponse> applyWorkoutPlan(@RequestBody ApplyWorkoutPlanRequest request, Authentication auth) {
         List<WorkoutExercise> workoutExercises = new ArrayList<>();
+        List<String> skippedExercises = new ArrayList<>();
         int orderIndex = 0;
         for (ProposedExerciseDto proposed : request.exercises()) {
             Exercise exercise = exerciseRepository.findClosestByNameGlobal(proposed.getExerciseName())
                     .orElse(null);
+
             if (exercise == null) {
-                continue;
+                if (proposed.getPrimaryMuscleGroup() == null) {
+                    // Can't create an exercise without its required primary muscle group -
+                    // this should be rare since the agent is instructed to always provide one.
+                    skippedExercises.add(proposed.getExerciseName());
+                    continue;
+                }
+
+                User me = userRepository.findByEmail(auth.getName()).orElse(null);
+                Exercise newExercise = new Exercise();
+                newExercise.setName(proposed.getExerciseName());
+                newExercise.setPrimaryMuscleGroup(proposed.getPrimaryMuscleGroup());
+                newExercise.setSecondaryMuscleGroup(proposed.getSecondaryMuscleGroup());
+                newExercise.setCreatedBy(me);
+                exercise = exerciseRepository.save(newExercise);
             }
 
             WorkoutExercise we = new WorkoutExercise();
@@ -90,7 +109,7 @@ public class WorkoutController {
         }
 
         Workout saved = workoutService.applyWorkoutPlan(request.workoutId(), request.workoutName(), workoutExercises, auth);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(new ApplyWorkoutPlanResponse(saved, skippedExercises));
     }
 
 }

@@ -146,6 +146,7 @@ public class WorkoutService {
             .orElseThrow(() -> new AccessDeniedException("User not found"));
 
         Workout workout;
+        String finalWorkoutName = workoutName;
         if (workoutId != null) {
             workout = workoutRepository.findById(workoutId)
                 .orElseThrow(() -> new EntityNotFoundException("Workout not found"));
@@ -163,9 +164,15 @@ public class WorkoutService {
             workout = new Workout();
             workout.setUser(me);
             workout.setIsPredefined(false);
+            // New workouts created via the coach get a visible marker, since without one a
+            // freshly-created "Push Workout" is indistinguishable in the workout list from an
+            // unrelated existing workout the user named the same thing.
+            if (!finalWorkoutName.endsWith("(Coach)")) {
+                finalWorkoutName = finalWorkoutName + " (Coach)";
+            }
         }
 
-        workout.setName(workoutName);
+        workout.setName(finalWorkoutName);
 
         Set<MuscleGroup> muscleGroups = new LinkedHashSet<>();
         for (WorkoutExercise we : newExercises) {

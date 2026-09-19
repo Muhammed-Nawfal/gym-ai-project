@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jackzilla-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "/home/nawfal/Desktop/gitProjects/jackzilla"],
+      "port": 5173
+    },
+    {
+      "name": "gym-ai-mobile-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/home/nawfal/Desktop/gitProjects/gym-ai-project/frontend-react/gym-ai-mobile/dist", "-l", "4173"],
+      "port": 4173
+    }
+  ]
+}
